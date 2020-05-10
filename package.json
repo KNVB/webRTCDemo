@@ -1,0 +1,19 @@
+{
+  "name": "webchat",
+  "version": "0.0.1",
+  "description": "Web page for video chat",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon public/index.js"
+  },
+  "author": "Roy Tsang",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.3"
+  }
+}

@@ -1,0 +1,4 @@
+Once the local description is generate(by createOffer or createAnswer method),
+then send it to remote immediately, at the remote side pass it to setRemoteDescription method.
+When onicecandidate occur, the send it to remote immediately, at the remote side pass it to addIceCandidate method. 
+ 

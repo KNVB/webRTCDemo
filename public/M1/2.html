@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Chat Demo</title>
+		<link rel="stylesheet" type="text/css" href="../textOnly/style.css">
+		<link rel="shortcut icon" type="image/x-icon" href="textOnly/favicon.ico">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="0.js"></script>
+		<script>
+			function handleICECandidate(event) {
+				if (event.candidate != null) {
+					writeLog('new ice candidate');
+				} else {
+					writeLog('all ice candidates');
+					socket.emit('send_answer',pc.localDescription);
+					writeLog("answer Sent");
+				}
+			}
+			socket.on("receive_offer",function (offer) {
+				writeLog("receive an offer");
+				receiveCall(offer);
+			});
+		</script>
+	</head>
+	<body>
+		<div id="chatlog" class="chatlog"></div>
+		<video id="selfView" width="320" height="240" autoplay muted></video>
+		<video id="remoteView" width="320" height="240" autoplay muted></video>
+		<input id="chatinput" type="text"  placeholder="type here" disabled>
+		<button id="chatbutton" onclick="sendMessage()" disabled>send</button>
+		<p>
+			<button id="buttoncreateoffer" onclick="makeACall()">call</button>
+		</p>
+		<div id="logger"></div>	
+	</body>
+</html>	

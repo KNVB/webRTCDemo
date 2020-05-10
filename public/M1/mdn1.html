@@ -1,0 +1,36 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Chat Demo</title>
+		<link rel="stylesheet" type="text/css" href="textOnly/style.css">
+		<link rel="shortcut icon" type="image/x-icon" href="textOnly/favicon.ico">
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="a1.js"></script>
+		<script>
+			socket.on("receive_answer",function (answer) {
+				writeLog("receive an answer");
+				writeLog("1 answer Have audio="+((answer.sdp.indexOf("audio")>-1)?"yes":"no")+",Have video="+((answer.sdp.indexOf("video")>-1)?"yes":"no"));
+				receiveAnswer(answer);
+			});
+			socket.on("receive_iceCandidate",function (iceCandidate) {
+				writeLog("receive ice candidate");
+				receiveICECandidate(iceCandidate);
+			});
+			socket.on("receive_offer",function (offer) {
+				writeLog("receive an offer");
+				receiveCall(offer);
+			});			
+		</script>
+	</head>
+	<body>
+		<div id="chatlog" class="chatlog"></div>
+		<input id="chatinput" type="text"  placeholder="type here" disabled>
+		<button id="chatbutton" onclick="sendMessage()" disabled>send</button>
+		<p>
+			<button id="buttoncreateoffer" onclick="makeACall()">Call</button>
+			<button id="buttoncreateoffer" onclick="hangUp()">Hang Up</button>
+		</p>
+		<div id="logger"></div>	
+	</body>
+</html>			

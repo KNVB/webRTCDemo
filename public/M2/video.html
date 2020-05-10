@@ -1,0 +1,68 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WebRTC Caller</title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<script src="b.js"></script>
+		<script>
+			socket.on("receive_answer",function (answer) {
+				writeLog("receive an answer");
+				writeLog("0 answer Have audio="+((answer.sdp.indexOf("audio")>-1)?"yes":"no")+",Have video="+((answer.sdp.indexOf("video")>-1)?"yes":"no"));
+				receiveAnswer(answer);
+			});
+			socket.on("receive_iceCandidate",function (iceCandidate) {
+				writeLog("receive ice candidate");
+				receiveICECandidate(iceCandidate);
+			});
+			socket.on("receive_offer",function (offer) {
+				writeLog("receive an offer");
+				receiveCall(offer);
+			});
+			/*
+			function toggleShareAudio() {
+				var v=document.getElementById("shareAudio");
+				enableShareAudio(v.checked);
+			}
+			function toggleShareVideo(){
+				var v=document.getElementById("shareVideo");
+				enableShareVideo(v.checked);
+			}*/			
+		</script>
+	</head>
+	<body>
+		<div id="container">
+			<div id="videoContainer">
+				<div id="localVideo">
+					<div>
+						<h1> Self View </h1>
+					</div>
+					<div class="videoOut">
+						<video id="selfView" autoplay controls muted></video>
+					</div>					
+				</div>
+				<div id="remoteVideo">
+					<div>
+						<h1> Remote View </h1>
+					</div>
+					<div class="videoOut">
+						<video id="remoteView" autoplay controls muted></video>
+					</div>
+				</div>
+			</div>
+			<div id="pannel">
+				<input type="checkbox" id="shareAudio" onchange="toggleShareAudio()" checked>Share Audio 
+				<input type="checkbox" id="shareVideo" onchange="toggleShareVideo()" checked>Share Video<br>
+				<p>
+					<button id="buttoncreateoffer" onclick="makeACall()">Call</button>
+					<button id="buttoncreateoffer" onclick="hangUp()">Hang Up</button>
+				</p>
+			</div>
+			<div id="logs">
+				<div id="chatlog"></div>
+				<div id="logger"></div>					
+			</div>
+		</div>
+	</body>
+</html>

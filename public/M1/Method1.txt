@@ -1,0 +1,1 @@
+For both side, waiting for the ice candidate enumeration completed, and then send the local description to remote side.

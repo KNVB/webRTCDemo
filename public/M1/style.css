@@ -1,0 +1,41 @@
+.invisible 
+{
+  display: none;
+}
+.videoOut
+{
+	width:99%;
+	height:100%;
+}
+#container,
+#localVideo,
+#logs,
+#remoteVideo
+{
+	display:flex;
+	flex-direction:column;
+}
+#localVideo,
+#remoteVideo
+{
+	width:50%;
+}
+#remoteView,
+#selfView
+{
+	/*
+	width:100%;
+	height:100%;
+	position:relative;
+	*/
+	width:320px;
+	height:240px;
+}
+#videoContainer
+{
+	display:flex;
+	flex-direction:row;
+	border:1px solid black;
+	margin:0px;
+	height:400px;
+}

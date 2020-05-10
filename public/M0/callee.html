@@ -1,0 +1,111 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WebRTC Callee</title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+		<script src="common.js"></script>
+		<script src="WebRTC.js"></script>
+		<script>
+			var webrtc=null;
+			function pasteOffer() {
+				var parameters={};
+				parameters.connectionStateChangeHandler=handleconnectionstatechange;
+				parameters.createAnswerSuccessHandler=createAnswerDone;
+				parameters.createAnswerFailHandler=createAnswerFailed;
+				
+				parameters.dataChannelLabel="dataChannel";
+				parameters.dataChannelMessageHandler=datachannelmessage;
+				parameters.dataChannelOpenHandler=datachannelopen;
+				parameters.dataChannelOptions={};
+				
+				parameters.iceCandidateHandler=handleicecandidate;
+				parameters.iceConnectionStatechangeHandler= handleiceconnectionstatechange;
+				
+				parameters.setLocalDescriptionSuccess =setLocalDescriptionSuccess; 
+				parameters.setLocalDescriptionFailed=setLocalDescriptionFailed;
+				
+				parameters.setRemoteDescriptionSuccess=setRemoteDescriptionSuccess;
+				parameters.setRemoteDescriptionFailed=setRemoteDescriptionFailed;
+
+
+				webrtc=new WebRTC(parameters);
+				webrtc.createConnection();
+			
+				webrtc.setLocalVideoTag(document.getElementById("selfView"));
+				webrtc.setRemoteVideoTag(document.getElementById("remoteView"));
+				
+				
+				textelement = document.getElementById('textoffer');
+				textelement.readOnly = true;
+				
+				offer = JSON.parse(textelement.value);
+			
+				webrtc.createAnswer(offer,document.getElementById("shareAudio").checked,document.getElementById("shareVideo").checked);
+				
+				document.getElementById('buttonofferpasted').disabled = true;
+			}
+			function createAnswerDone(answer) {
+			  console.log('createAnswerDone');
+			  document.getElementById('spananswer').classList.toggle('invisible');
+			}
+
+			function createAnswerFailed(reason) {
+			  console.log('createAnswerFailed');
+			  console.log(reason);
+			}
+			function handleicecandidate(answer) {
+				//console.log("handleicecandidate="+JSON.stringify(offer));
+				console.log(answer.sdp);
+				document.getElementById("textanswer").value=JSON.stringify(answer);
+				document.getElementById("textanswer").select();
+			}
+			function toggleShareAudio(v) {
+				if (webrtc!=null)
+					webrtc.enableShareAudio(v.checked);
+			}
+			function toggleShareVideo(v){
+				if (webrtc!=null)
+					webrtc.enableShareVideo(v.checked);
+			}
+		</script>
+	</head>
+	<body>
+<div id="container">
+			<div id="videoContainer">
+				<div id="localVideo">
+					<h1> Self View </h1>
+					<div class="videoOut">
+						<video id="selfView" autoplay controls muted></video>
+					</div>					
+				</div>
+				<div id="remoteVideo">
+					<h1> Remote View </h1>
+					<div class="videoOut">
+						<video id="remoteView" autoplay controls muted></video>
+					</div>
+				</div>
+			</div>
+			<div id="pannel">
+				<input type="checkbox" id="shareAudio" onchange="toggleShareAudio(this)" checked>Share Audio 
+				<input type="checkbox" id="shareVideo" onchange="toggleShareVideo(this)" checked>Share Video<br>
+				<p>
+					answering to a connection offer from a peer
+				</p>
+				<p>
+					please wait for peer to give offer and paste it below
+				</p>
+				<textarea id="textoffer"
+				  placeholder="please paste offer from initiating side"></textarea>
+				<button id="buttonofferpasted" onclick="pasteOffer()">offer pasted</button>
+
+				<span id="spananswer" class="invisible">
+					<p>
+						please send following answer to peer
+					</p>
+					<textarea id="textanswer" readonly
+					  placeholder="please wait a few seconds"></textarea>
+				</span>	
+			</div>
+		</div>	
+	</body>
+</html>	

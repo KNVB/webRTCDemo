@@ -1,0 +1,171 @@
+
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>WebRTC Offer</title>
+		<style>
+			.invisible 
+			{
+			  display: none;
+			}
+		</style>
+	</head>
+	<body>
+		<table border=1>
+			<tr>
+				<td>
+					<h1> Self View </h1>
+					<video id="selfView" width="320" height="240" autoplay muted></video>
+				</td>
+				<td>
+					<h1> Remote View </h1>
+					<video id="remoteView" width="320" height="240" autoplay muted></video>
+				</td>
+			</tr>	
+		</table>
+		<p>
+		offering a connection to a peer
+		</p>
+		<p>
+			<button id="buttoncreateoffer" onclick="createOffer()">create offer</button>
+		</p>
+
+		<span id="spanoffer" class="invisible">
+			<p>
+			please copy the offer below and send it to a peer.
+			</p>
+			<textarea id="offerText" readonly
+			  placeholder="please wait a few seconds"></textarea>
+			<button id="buttonoffersent" onclick="sentOffer()" disabled>offer sent</button>
+		</span>
+
+		<span id="spananswer" class="invisible">
+			<p>
+			please wait for peer to give answer and paste it below
+			</p>
+			<textarea id="textanswer"
+			  placeholder="please paste answer from responding side"></textarea>
+			<button id="buttonanswerpasted" onclick="pasteAnswer()">answer pasted</button>
+		</span>
+		
+		<script>
+			var pc;
+			var remoteStream =new MediaStream();
+			remoteView.srcObject = remoteStream;
+			function createOffer() {
+				var configuration = {iceServers: [{urls: "stun:stun.stunprotocol.org"}]};
+				
+				pc = new RTCPeerConnection(configuration);
+				
+				pc.onicecandidate=handleicecandidate(lasticecandidate);
+				pc.onconnectionstatechange = handleconnectionstatechange;
+				pc.oniceconnectionstatechange = handleiceconnectionstatechange;
+				pc.ontrack = handletrack;
+				
+				navigator.mediaDevices.getUserMedia({"audio": true, "video": true}).then((stream) => {
+					console.log("selfView.srcObject="+selfView.srcObject);
+					selfView.srcObject=stream;
+					stream.getTracks().forEach((track)=> {
+							pc.addTrack(track,stream);
+					});
+					pc.createOffer().then(createOfferDone, createOfferFailed);
+				});
+				dataChannel = pc.createDataChannel('chat');
+				dataChannel.onopen = datachannelopen;
+				dataChannel.onmessage = datachannelmessage;
+				
+				
+				document.getElementById('buttoncreateoffer').disabled = true;
+				document.getElementById('spanoffer').classList.toggle('invisible');
+			}
+			function createOfferDone(offer) {
+			  console.log('createOfferDone');
+			  setLocalPromise = pc.setLocalDescription(offer);
+			  setLocalPromise.then(setLocalDone, setLocalFailed);
+			}
+
+			function createOfferFailed(reason) {
+			  console.log('createOfferFailed');
+			  console.log(reason);
+			}
+			function datachannelopen() {
+			  console.log('datachannelopen');
+			  console.log('connected');
+			}
+
+			function datachannelmessage(message) {
+			  console.log('datachannelmessage');
+			  console.log(message);
+			  text = message.data;
+			  console.log(text);
+			}
+			function handleicecandidate(lasticecandidate) {
+			  return function(event) {
+				if (event.candidate != null) {
+				  console.log('new ice candidate');
+				} else {
+				  console.log('all ice candidates');
+				  lasticecandidate();
+				}
+			  }
+			}
+
+			function handleconnectionstatechange(event) {
+			  console.log('handleconnectionstatechange');
+			  console.log(event);
+			}
+
+			function handleiceconnectionstatechange(event) {
+			  console.log('ice connection state: ' + event.target.iceConnectionState);
+			}
+			function handletrack(event) {
+				console.log("Track event"); 
+				//console.log(event);
+				remoteStream.addTrack(event.track);
+			}
+			function lasticecandidate() {
+			  console.log('lasticecandidate');
+			  textelement = document.getElementById('offerText');
+			  offer = pc.localDescription;
+			  textelement.value = JSON.stringify(offer);
+			  document.getElementById('buttonoffersent').disabled = false;
+			}
+			function pasteAnswer() {
+				console.log('pasteAnswer');
+				document.getElementById('buttonanswerpasted').disabled = true;
+				textelement = document.getElementById('textanswer');
+				textelement.readOnly = true;
+				answer = JSON.parse(textelement.value);
+				setRemotePromise = pc.setRemoteDescription(answer);
+				setRemotePromise.then(setRemoteDone, setRemoteFailed);
+				
+				
+			}
+			function sentOffer() {
+			  console.log('sent offer');
+			  document.getElementById('spananswer').classList.toggle('invisible');
+			  document.getElementById('buttonoffersent').disabled = true;
+			 
+			}
+
+			function setLocalDone() {
+			  console.log('setLocalDone');
+			}
+
+			function setLocalFailed(reason) {
+			  console.log('setLocalFailed');
+			  console.log(reason);
+			}
+			
+			
+			function setRemoteDone() {
+			  console.log('setRemoteDone');
+			}
+
+			function setRemoteFailed(reason) {
+			  console.log('setRemoteFailed');
+			  console.log(reason);
+			}
+		</script>
+	</body>
+</html>	
