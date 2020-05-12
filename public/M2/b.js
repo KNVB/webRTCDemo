@@ -3,9 +3,9 @@ var configuration = {iceServers:
 			 {urls: "stun:stun.l.google.com:19302"},
 			 {urls: "turn:numb.viagenie.ca", credential: "turnserver", username: "sj0016092@gmail.com"}		
 			]};
-var isShareLocalVideo=false,isShareLocalVideo=false;			
+var isShareLocalAudio=false,isShareLocalVideo=false;			
 var pc,dataChannel;
-var socket = io();
+var socket = io.connect();
 var remoteICECandidateList=[];
 var remoteView,remoteStream =new MediaStream();
 $( document ).ready(function() {
@@ -64,27 +64,30 @@ function dataChannelMessage(message) {
 	text = message.data;
 	chatlog(text);
 }
-function enableShareAudio(v){
-	isShareLocalAudio=v;
-	if (pc!=null)
-	{	
+function enableShareAudio(x) {
+	console.log("Before x="+x+",isShareLocalAudio="+isShareLocalAudio);
+	isShareLocalAudio=x;
+	console.log("After x="+x+",isShareLocalAudio="+isShareLocalAudio);
+	if (pc!=null){
 		pc.getSenders().forEach((sender)=>{
-			var track=sender.track;
-			if (track.kind=="audio")
-				track.enabled=v;
+		var track=sender.track;
+		if (track.kind=="audio")
+			track.enabled=isShareLocalAudio;
 		});
 	}
-}
-function enableShareVideo(v){
-	isShareLocalVideo=v;
-	if (pc!=null)
-	{	
+}	
+function enableShareVideo(x) {
+	console.log("Before x="+x+",isShareLocalVideo="+isShareLocalVideo);
+	isShareLocalVideo=x;	
+	console.log("After x="+x+",isShareLocalVideo="+isShareLocalVideo);
+	if (pc!=null){
 		pc.getSenders().forEach((sender)=>{
-			var track=sender.track;
-			if (track.kind=="video")
-				track.enabled=v;
+		var track=sender.track;
+		if (track.kind=="video")
+			track.enabled=isShareLocalVideo;
 		});
 	}
+		
 }
 function getConstraints() {
 	/*
@@ -110,10 +113,11 @@ async function getLocalMedia() {
 		document.getElementById("selfView").srcObject =stream;
 		document.getElementById("selfView").play();
 		stream.getTracks().forEach((track)=> {
-				pc.addTrack(track.clone(),stream);	
-				//writelog(track.kind);
-			});
-			
+			pc.addTrack(track.clone(),stream);
+			//writelog(track.kind);
+		});
+		enableShareAudio(isShareLocalAudio);
+		enableShareVideo(isShareLocalVideo);		
 		/* use the stream */
 	} catch(err) {
 		writeLog("getLocalMedia failure:"+err);
@@ -156,11 +160,12 @@ function handleiceconnectionstatechange(event) {
   writeLog('ice connection state: ' + pc.iceConnectionState);
 }
 function handleRemoteTrack(event) {
-	writeLog("Track event"); 
+	writeLog("Track event:"+event.track.kind); 
 	remoteStream.addTrack(event.track, remoteStream);
 }
 function hangUp() {
 	writeLog("Hang Up");
+	document.getElementById("selfView").pause();
 	var localStream=document.getElementById("selfView").srcObject;
 	if (localStream) {
 		localStream.getTracks()
@@ -170,6 +175,7 @@ function hangUp() {
 			localStream.removeTrack(track);
 		});
 		localStream=null;
+		
 		document.getElementById("selfView").src="";
 		document.getElementById("selfView").srcObject=null;
 	}
@@ -205,24 +211,26 @@ async function makeACall() {
 	createConnection();
 	await getLocalMedia();
 	pc.createOffer(
-		{offerToReceiveAudio: true,
-		offerToReceiveVideo: true})
-	.then((offer)=>
-			{
-				writeLog("Offer Have audio="+((offer.sdp.indexOf("audio")>-1)?"yes":"no")+",Have video="+((offer.sdp.indexOf("video")>-1)?"yes":"no"));
-				pc.setLocalDescription(offer)
-				.then(()=> {
-					writeLog("Set Local Description Success");
-					socket.emit('send_offer',pc.localDescription);
-					writeLog("Offer Sent");
+		{
+			offerToReceiveAudio: true,
+			offerToReceiveVideo: true
+		})
+		.then((offer)=>
+				{
+					writeLog("Offer Have audio="+((offer.sdp.indexOf("audio")>-1)?"yes":"no")+",Have video="+((offer.sdp.indexOf("video")>-1)?"yes":"no"));
+					pc.setLocalDescription(offer)
+					.then(()=> {
+						writeLog("Set Local Description Success");
+						socket.emit('send_offer',pc.localDescription);
+						writeLog("Offer Sent");
+					})
+					.catch((error)=>{
+						writeLog("Set Local Description Failure:"+error);
+					});
 				})
-				.catch((error)=>{
-					writeLog("Set Local Description Failure:"+error);
-				});
-			})
-	.catch ((error)=>{
-		writeLog("Create Offer Failure:"+error);
-	});		
+		.catch ((error)=>{
+			writeLog("Create Offer Failure:"+error);
+		});		
 }
 function receiveAnswer(answer) {
 	pc.setRemoteDescription(answer)
@@ -285,6 +293,7 @@ function sendMessage() {
 	chatlog(inputBox.value);
 	inputBox.value="";
 }
+
 function writeLog(message){
 	var logger=document.getElementById("logger");
 	logger.innerHTML=message+"<br>"+logger.innerHTML;

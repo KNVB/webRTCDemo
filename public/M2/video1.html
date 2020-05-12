@@ -1,7 +1,102 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>Chat Demo</title>
+		<title>WebRTC Chat Demo</title>
+		<style>
+			.buttons{
+				display:flex;
+				flex-direction:row;
+				border:1px solid orange;
+				justify-content:space-evenly;
+				padding:3px;
+				height:50%;
+			}
+			.localContainer,
+			.remoteContainer{
+				display:flex;
+				flex-direction:column;
+				margin:3px;
+				width:50%
+			}
+			.logger{
+				border:1px solid darkcyan;
+				height:10%;
+				margin:3px;
+				overflow:scroll;
+			}
+			.myButton {
+				background-color:#44c767;
+				border-radius:28px;
+				border:1px solid #18ab29;
+				display:inline-block;
+				cursor:pointer;
+				color:#ffffff;
+				font-family:Arial;
+				font-size:17px;
+				padding:5px 10px;
+				text-decoration:none;
+				text-shadow:0px 1px 0px #2f6627;
+			}
+			.myButton:hover {
+				background-color:#5cbf2a;
+			}
+			.myButton:active {
+				position:relative;
+				top:1px;
+			}
+
+			.outerMostContainer {
+				border:1px solid black;
+				display:flex;
+				flex-direction:column;
+				height:100%;
+				width:100%;	
+			}
+			.outerVideoContainer {
+				border:1px solid red;
+				display:flex;
+				flex-direction:row;
+				height:70%;
+				margin:3px;				
+			}
+			.panel{
+				border:1px solid green;
+				height:20%;
+				margin:3px;
+				display:flex;
+				flex-direction:column;
+			}
+			.switch {
+				display:flex;
+				flex-direction:row;
+				align-items:center;
+			}
+			.switches {
+				display:flex;
+				flex-direction:row;
+				justify-content:space-evenly;
+				padding:3px;
+				height:50%;
+				border:1px solid magenta;
+			}			
+			.videoContainer {
+				border:1px solid orange;
+				height:100%;
+				overflow: hidden;
+				margin:3px;
+			}
+			.videoTitle{
+				border:1px solid blue;
+				margin:3px;
+			}
+			video{
+				height:100%;
+				object-fit: cover;
+				width:100%;
+			}
+		</style>
+		<link rel="stylesheet" href="onoffswitch.css">
+
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 		<script src="b.js"></script>
@@ -19,39 +114,74 @@
 				writeLog("receive an offer");
 				receiveCall(offer);
 			});
+			function call() {
+				isShareLocalAudio=document.getElementById("shareAudio").checked;
+				isShareLocalVideo=document.getElementById("shareVideo").checked;
+				makeACall();
+			}
 		</script>
 	</head>
 	<body>
-		<div style="display:flex;flex-direction:column;border:1px solid black;width:100%;height:100%;">
-			<div style="display:flex;flex-direction:row;1px solid red;height:70%;border:1px solid red;margin:3px;">
-				<div style="display:flex;flex-direction:column;border:1px solid blue;margin:3px;width:50%">
-					<div style="border:1px solid blue;margin:3px;">
+		<div class="outerMostContainer">
+			<div class="outerVideoContainer">
+				<div class="localContainer">
+					<div class="videoTitle">
 						Self View
 					</div>
-					<div style="overflow: hidden;margin:3px;border:1px solid orange;height:100%">
-						<video id="selfView" autoplay controls muted style="object-fit: cover;width:100%;height:100%;">
+					<div class="videoContainer">
+						<video id="selfView" autoplay controls muted>
 						</video>
 					</div>
 				</div>
-				<div style="display:flex;flex-direction:column;border:1px solid magenta;margin:3px;width:50%">
-					<div style="border:1px solid blue;margin:3px;">
+				<div class="remoteContainer">
+					<div class="videoTitle">
 						Remote View
 					</div>
-					<div style="overflow: hidden;margin:3px;border:1px solid orange;height:100%">
-						<video id="remoteView" autoplay controls muted style="object-fit: cover;width:100%;height:100%;">
+					<div class="videoContainer">
+						<video id="remoteView" autoplay controls muted>
 						</video>
 					</div>
 				</div>
 			</div>
-			<div style="1px solid red;height:10%;border:1px solid green;margin:3px;">
-				<input type="checkbox" id="shareAudio" onchange="toggleShareAudio()" checked>Share Audio 
-				<input type="checkbox" id="shareVideo" onchange="toggleShareVideo()" checked>Share Video<br>
-				<p>
-					<button id="buttoncreateoffer" onclick="makeACall()">Call</button>
-					<button id="buttoncreateoffer" onclick="hangUp()">Hang Up</button>
-				</p>			
+			<div class="panel">
+				<div class="switches">
+					<div class="switch">
+						<label>Share Audio:</label>
+						<div class="onoffswitch"> <!-- Refer https://proto.io/freebies/onoff/-->
+							<input type="checkbox" 
+								name="onoffswitch" 
+								class="onoffswitch-checkbox" 
+								id="shareAudio" 
+								onchange="enableShareAudio(this.checked)"
+								checked>
+							<label class="onoffswitch-label" for="shareAudio">
+								<span class="onoffswitch-inner"></span>
+								<span class="onoffswitch-switch"></span>
+							</label>
+						</div>
+					</div>
+					<div class="switch">
+						<label>Share Video:</label>
+						<div class="onoffswitch"><!-- Refer https://proto.io/freebies/onoff/-->
+							<input type="checkbox" 
+								name="onoffswitch" 
+								class="onoffswitch-checkbox" 
+								id="shareVideo" 
+								onchange="enableShareVideo(this.checked)"		
+								checked>
+							<label class="onoffswitch-label" for="shareVideo">
+								<span class="onoffswitch-inner"></span>
+								<span class="onoffswitch-switch"></span>
+							</label>
+						</div>					
+					</div>
+				</div>
+				<div class="buttons">
+					<button id="buttoncreateoffer" class="myButton" onclick="call()">Call</button>
+					<button id="buttoncreateoffer" class="myButton" onclick="hangUp()">Hang Up</button>
+				</div>
 			</div>
-			<div style="1px solid red;height:20%;border:1px solid darkcyan;margin:3px;overflow:scroll">
+			<div class="logger">
 				<div id="chatlog"></div>
 				<div id="logger"></div>		
 			</div>
