@@ -1,0 +1,54 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WebRTC Caller</title>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+		<script src="WebRTC.js"></script>
+		<script>
+			var webRTC=null;
+			$( document ).ready(function() {
+				webRTC=new WebRTC(clearLog,writeLog);
+				webRTC.setLocalVideo(document.getElementById("selfView"));
+				webRTC.setRemoteVideo(document.getElementById("remoteView"));
+			});
+			function call() {
+				webRTC.call();
+			}
+			function hangUp() {
+				if (webRTC!=null) {
+					webRTC.hangUp();
+				}
+			}
+			function clearLog() {
+			  chatelement = document.getElementById('logger');
+			  chatelement.innerHTML='';
+			}		
+			function writeLog(message) {
+				var logger=document.getElementById("logger");
+				logger.innerHTML=message+"<br>"+logger.innerHTML;
+			}	
+		</script>
+	</head>
+	<body>
+		<table border=1>
+			<tr>
+				<td>
+					<h1> Self View </h1>
+					<video id="selfView" width="320" height="240" autoplay muted></video>
+				</td>
+				<td>
+					<h1> Remote View </h1>
+					<video id="remoteView" width="320" height="240" autoplay muted></video>
+				</td>
+			</tr>
+			<tr>
+				<td><button onclick="call()">Make A Call</button></td>
+				<td><button onclick="hangUp()">Hang Up</button></td>
+			</tr>	
+		</table>
+		<div id="logger" style="border:1px solid black;width:100%;height:30%;overflow:scroll">
+		</div>
+	</body>
+</html>	

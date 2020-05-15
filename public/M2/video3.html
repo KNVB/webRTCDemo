@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+		<title>WebRTC Chat Demo</title>
+		<style>
+			html,body {
+				height:100%;
+				width:100%;
+				padding:0px;
+				margin:0px;
+				display: grid;
+				grid-template-columns: 1fr;
+				grid-template-rows: 1fr;
+			}
+			
+			video{
+				height:100%;
+				object-fit: cover;
+				width:100%;
+			}
+			.box {
+				border:1px solid black;
+			}
+			.member{
+				display: grid;
+				grid-gap: 5px;
+				grid-template-rows: 0.5fr 0.5fr 5fr;
+				padding:5px;
+			}
+			.main{
+				display: grid;
+				grid-gap: 5px;
+				grid-template-columns: 1fr 1fr;
+				padding:5px;
+			}
+			
+			.switches {
+				display: grid;
+				grid-gap: 5px;
+				grid-template-columns: 1fr 1fr 1fr 1fr;
+				padding:5px;
+				align-items: center;
+			}		
+			.videoContainer{
+				overflow:hidden;
+			}
+			.wrapper {
+			  display: grid;
+			  padding:5px;
+			  margin:5px;
+			  grid-gap: 5px;
+			  grid-template-columns: 1fr;
+			  grid-template-rows: 7fr 0.5fr 1fr 1fr;
+			}
+				
+		</style>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>		
+	</head>
+	<body>
+		<div class="box wrapper">
+			<div class="box main">
+				<div class="box member">
+					<div id="title" class="box">
+						Self view
+					</div> 
+					<div class="box">
+					</div>
+					<div class="box videoContainer">
+						<video id="selfView" autoplay controls muted></video>
+					</div> 
+				</div> 
+				<div class="box member">
+					<div id="title" class="box">
+						Remote view
+					</div> 
+					<div class="box">
+					</div>
+					<div class="box videoContainer">
+						<video id="remoteView" autoplay controls muted></video>
+					</div> 
+				</div>
+			</div> 
+			<div class="box">
+				<label>Share Audio:</label>
+				<input class="w3-check" type=checkbox id="shareAudio" value="1" checked>
+				<label>Share Video:</label>
+				<input class="w3-check" type=checkbox id="shareVideo" value="1" checked>
+			</div>
+			<div class="box">
+			</div>
+			<div class="box">
+			</div>
+		</div>
+	</body>
+</html>	
+

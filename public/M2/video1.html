@@ -1,15 +1,16 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>WebRTC Chat Demo</title>
+		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 		<style>
 			.buttons{
 				display:flex;
 				flex-direction:row;
 				border:1px solid orange;
-				justify-content:space-evenly;
+				justify-content:flex-start;
 				padding:3px;
-				height:50%;
 			}
 			.localContainer,
 			.remoteContainer{
@@ -24,27 +25,6 @@
 				margin:3px;
 				overflow:scroll;
 			}
-			.myButton {
-				background-color:#44c767;
-				border-radius:28px;
-				border:1px solid #18ab29;
-				display:inline-block;
-				cursor:pointer;
-				color:#ffffff;
-				font-family:Arial;
-				font-size:17px;
-				padding:5px 10px;
-				text-decoration:none;
-				text-shadow:0px 1px 0px #2f6627;
-			}
-			.myButton:hover {
-				background-color:#5cbf2a;
-			}
-			.myButton:active {
-				position:relative;
-				top:1px;
-			}
-
 			.outerMostContainer {
 				border:1px solid black;
 				display:flex;
@@ -126,8 +106,9 @@
 		<div class="outerMostContainer">
 			<div class="outerVideoContainer">
 				<div class="localContainer">
-					<div class="videoTitle">
+					<div class="videoTitle w3-xlarge">
 						Self View
+						<button id="buttoncreateoffer" class="w3-button w3-green w3-xlarge w3-round-xxlarge" onclick="call()">Make A Call</button>
 					</div>
 					<div class="videoContainer">
 						<video id="selfView" autoplay controls muted>
@@ -135,8 +116,9 @@
 					</div>
 				</div>
 				<div class="remoteContainer">
-					<div class="videoTitle">
+					<div class="videoTitle w3-xlarge">
 						Remote View
+						<button id="buttoncreateoffer" class="w3-button w3-green w3-xlarge w3-round-xxlarge" onclick="hangUp()">Hang Up</button>
 					</div>
 					<div class="videoContainer">
 						<video id="remoteView" autoplay controls muted>
@@ -145,7 +127,7 @@
 				</div>
 			</div>
 			<div class="panel">
-				<div class="switches">
+				<div class="buttons">
 					<div class="switch">
 						<label>Share Audio:</label>
 						<div class="onoffswitch"> <!-- Refer https://proto.io/freebies/onoff/-->
@@ -175,11 +157,7 @@
 								<span class="onoffswitch-switch"></span>
 							</label>
 						</div>					
-					</div>
-				</div>
-				<div class="buttons">
-					<button id="buttoncreateoffer" class="myButton" onclick="call()">Call</button>
-					<button id="buttoncreateoffer" class="myButton" onclick="hangUp()">Hang Up</button>
+					</div>					
 				</div>
 			</div>
 			<div class="logger">
