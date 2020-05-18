@@ -37,24 +37,11 @@ class WebRTC{
 			closeVideoStream(remoteVideo);
 			if (dataChannel) {
 				dataChannel.close();
-				dataChannel.onopen = null;
-				dataChannel.onmessage = null;
-				dataChannel.onclose = null;
-				dataChannel.onerror = null;
 			}
-			dataChannel=null;
-			
+
 			if (pc) {
 				pc.close();
-				pc.onclose = null;
-				pc.onconnectionstatechange = null;
-				pc.ondatachannel = null;
-				pc.onicecandidate = null;
-				pc.oniceconnectionstatechange =null;
-				pc.onsignalingstatechange=null;
-				pc.ontrack=null;
 			}
-			pc=null;
 		});
 		this.setLocalVideo=((lv)=>{
 			localVideo=lv;
@@ -85,6 +72,20 @@ class WebRTC{
 				writeLog("Failure during addIceCandidate(): " + e);
 			});
 		}
+		function closeVideoStream(v){
+			var stream=v.srcObject;
+			if (stream) {
+				stream.getTracks()
+				.forEach((track) => {
+					track.stop();
+					track.enabled = false; 
+					stream.removeTrack(track);
+				});
+				stream=null;
+				v.src="";
+				v.srcObject=null;
+			}		
+		}
 		function createOffer(){
 			pc.createOffer(offerParam)
 			.then((offer)=>
@@ -104,20 +105,7 @@ class WebRTC{
 				writeLog("Create Offer Failure:"+error);
 			});
 		}
-		function closeVideoStream(v){
-			var stream=v.srcObject;
-			if (stream) {
-				stream.getTracks()
-				.forEach((track) => {
-					track.stop();
-					track.enabled = false; 
-					stream.removeTrack(track);
-				});
-				stream=null;
-				v.src="";
-				v.srcObject=null;
-			}		
-		}
+		
 		function createConnection() {
 			pc = new RTCPeerConnection(configuration);
 			pc.onclose =handleClose; 
@@ -133,6 +121,11 @@ class WebRTC{
 		}
 		function dataChannelClose() {
 			writeLog('Data channel closed');
+			dataChannel.onopen = null;
+			dataChannel.onmessage = null;
+			dataChannel.onclose = null;
+			dataChannel.onerror = null;
+			dataChannel = null;
 		}
 		function dataChannelError(event) {
 			writeLog('Data channel error:'+event.message);
@@ -183,7 +176,17 @@ class WebRTC{
 			}
 		}		
 		function handleClose() {
-			writeLog("pc.connection is closed"); 
+			writeLog("pc.connection is closed");
+			pc.onclose = null;
+			pc.onconnectionstatechange = null;
+			pc.ondatachannel = null;
+			pc.onicecandidate = null;
+			pc.oniceconnectionstatechange = null;
+			pc.onicegatheringstatechange =null;
+			pc.onnegotiationneeded = null;
+			pc.ontrack=null;
+			pc.onsignalingstatechange=null;
+			pc=null;			
 		}
 		function handleConnectionStateChange(event) {
 		  writeLog("pc.connectionState="+pc.connectionState);
@@ -309,5 +312,4 @@ class WebRTC{
 			}
 		}
 	}
-	
 }

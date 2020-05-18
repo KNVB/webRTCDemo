@@ -1,0 +1,68 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<style>
+			html,body {
+				height:100%;
+				padding:0px;
+				margin:0px;
+			}
+			.wrapper {
+			  display: grid;
+			  padding:0px;
+			  margin:5px;
+			  grid-gap: 5px;
+			  grid-template-columns: 10fr 10fr 0.5fr 1fr;
+			  grid-template-rows: 0.5fr 10fr 1fr;
+			  border: 1px solid blue;
+			  height: calc(100vh - 11px);
+			  width:calc(100vw-11px);
+			}
+
+			.box {
+			  font-family: arial;
+			  border: 1px solid black;
+			}
+
+			.a {
+			  grid-column: 1 / span 2;
+			}
+
+			.b {
+			  grid-column: 4;
+			  grid-row: 1 / span 3;
+			}
+
+			.c {
+			  grid-column: 1 /span 2;
+			  grid-row: 2;
+			}
+
+			.d {
+			  grid-column: 1;
+			  grid-row: 3;
+			}
+
+			.e {
+			  grid-column: 2;
+			  grid-row: 3;
+			}
+			.f {
+			  grid-column: 3;
+			  grid-row: 1 / span 3;
+			}			
+		</style>
+	</head>
+	<body>
+		<div class="wrapper">
+		  <div class="box a">A</div>
+		  <div class="box b">B</div>
+		  <div class="box f">F</div>
+		  <div class="box c">C</div>
+		  <div class="box d">D</div>
+		  <div class="box e">E</div>
+		</div>
+	</body>
+</html>	

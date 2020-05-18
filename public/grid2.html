@@ -1,0 +1,118 @@
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+		<link rel="stylesheet" href="css/onoffswitch.css">
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<style>
+			.lower,
+			.upper {
+				padding:0px;
+				margin:0px;
+				border: 1px solid black;
+				position:relative;
+			}
+			.upperToolbar{
+				border: 1px solid black;
+				z-index:1;
+				position:absolute;
+				float:left;
+				width:100%;
+				
+				bottom:0;
+				text-align:center;
+				display:flex;
+				justify-content:center;
+			}
+			.wrapper {
+			  display: grid;
+			  padding:5px;
+			  margin:5px;
+			  grid-gap: 5px;
+			  grid-template-columns: 1fr;
+			  grid-template-rows: 8fr 2fr;
+			  border: 1px solid black;
+			}
+			/* Extra small devices (phones, 600px and down) */
+			@media only screen and (max-width: 600px) {
+				body {
+					background-color: red;
+				}
+			}
+
+			/* Small devices (portrait tablets and large phones, 600px and up) */
+			@media only screen and (min-width: 600px) {
+				body {
+					background-color: green;
+				}				
+			}
+
+			/* Medium devices (landscape tablets, 768px and up) */
+			@media only screen and (min-width: 768px) {
+				body {
+					background-color: blue;
+				}
+			}
+
+			/* Large devices (laptops/desktops, 992px and up) */
+			@media only screen and (min-width: 992px) {
+				body {
+					background-color: magenta;
+				}
+			}
+
+			/* Extra large devices (large laptops and desktops, 1200px and up) */
+			@media only screen and (min-width: 1200px) {
+				body {
+					background-color: Beige;
+				}
+			}
+			
+			html,body {
+				height:100%;
+				width:100%;
+				padding:0px;
+				margin:0px;
+				display: grid;
+				grid-template-columns: 1fr;
+				grid-template-rows: 1fr;
+			}
+			video{
+				float:left;
+				height:100%;
+				width:100%;
+				object-fit:cover;
+				z-index:0;
+				position:absolute;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="wrapper">
+			<div class="upper">
+				<div class="upperToolbar">
+					<picture>
+						<source media="(max-width: 600px)" srcset="img/share_video_48.png">
+						<source media="(min-width: 600px) and (max-width: 767px)" srcset="img/share_video_64.png">
+						<source media="(min-width: 768px) and (max-width: 991px)" srcset="img/share_video_128.png">
+						<source media="(min-width: 991px)" srcset="img/share_video_96.png">
+						<img src="img/share_video_48.png">
+					</picture>
+					<picture>
+						<source media="(max-width: 600px)" srcset="img/share_audio_48.png">
+						<source media="(min-width: 600px) and (max-width: 767px)" srcset="img/share_audio_64.png">
+						<source media="(min-width: 768px) and (max-width: 991px)" srcset="img/share_audio_128.png">
+						<source media="(min-width: 991px)" srcset="img/share_audio_96.png">
+						<img src="img/share_video_48.png">
+					</picture>					
+				</div>
+				<video id="selfView"></video>
+			</div>
+			<div class="lower">
+				L
+			</div>
+			
+		</div>
+	</body>
+</html>	
