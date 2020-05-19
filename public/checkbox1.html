@@ -1,0 +1,73 @@
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<style>
+			:root {
+			  --button-width: 70px;
+			  --button-height:35px;
+			}
+			#toggle{
+				display:none;
+			}
+			html,body {
+				height:100%;
+				width:100%;
+				padding:5px;
+				margin:5px;
+			}
+			label {
+				width:var(--button-width);
+				height:var(--button-height);
+				border-radius:var(--button-height);
+				padding:calc(var(--button-height) / 8);
+				position:relative;
+				background-color:red;
+				display:flex;
+				align-items:center;
+				color:white;
+				font-family:arial;
+				font-weight:bold;
+				box-sizing: content-box;
+				cursor:pointer;
+			}
+			#text{
+				position:absolute;
+				width: calc(100% - var(--button-height) / 3);
+				z-index:5;
+				border-radius:var(--button-height);
+				text-align:right;
+			}
+			#text::after{
+				content:"OFF"
+			}
+			#slider{
+				width:50%;
+				height:100%;
+				background-color:white;
+				z-index:10;
+				border-radius:var(--button-height);
+			}
+			#toggle:checked ~ label {
+				background-color:green;
+			}
+			#toggle:checked ~ label > div#slider{
+				transform:translateX(100%);
+			}
+			#toggle:checked ~ label > div#text{
+				text-align:left;
+			}
+			#toggle:checked ~ label > div#text::after{
+				content:"ON"
+			}
+		</style>
+	</head>
+	<body>
+		<input type="checkbox" id="toggle" checked>
+		<label for="toggle">
+			<div id="text"></div>
+			<div id="slider"></div>
+		</label>
+	</body>
+</html>				

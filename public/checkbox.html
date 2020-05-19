@@ -1,0 +1,27 @@
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<style>
+			#toggle{
+				display:none;
+			}
+			.control-me::after {
+				content: "😃";
+				font-size: 100px;
+			}
+			#toggle:checked ~ label > div.control-me::after {
+				content: "😩";
+			}
+		</style>
+	</head>
+	<body>
+		<input type="checkbox" id="toggle">
+		<label for="toggle">
+			<div class="control-me">
+				
+			</div>
+		</label>
+	</body>
+</html>	
