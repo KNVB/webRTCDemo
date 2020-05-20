@@ -1,0 +1,22 @@
+<html>
+	<head>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<script>
+			function gcd (a, b) {
+				return (b == 0) ? a : gcd (b, a%b);
+			}
+			function show(){
+				var w = $(document).width();
+				var h = $(document).height();
+				var r = gcd (w, h);
+				//alert("Your screen resolution is: " + screen.width + " x " + screen.height);
+				//alert(window.devicePixelRatio);
+				//alert(window.innerWidth+" x "+window.innerHeight);
+				//alert(window.outerWidth+" x "+window.outerHeight);
+				alert("Your screen resolution is: " + w + " x " + h+",Aspect:"+(w/r)+":"+(h/r));
+			}
+		</script>
+	</head>
+	<body onload="show()">
+	</body>
+</html>
