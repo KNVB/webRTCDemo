@@ -1,69 +1,109 @@
 <html>
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+		<link rel="stylesheet" href="css/onoffswitch.css">
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 		<style>
-		:root {
-		  --button-width: 60px;
-		  --button-height:30px;
-		}
-		.button{
-		  width:var(--button-width);
-		  height:var(--button-height);
-		  border-radius:var(--button-height);
-		  padding:calc(var(--button-height) / 8);
-		  position:relative;
-		  background-color:blue;
-		  display:flex;
-		  align-items:center;
-		  color:white;
-		  font-family:arial;
-		}
-		input[type=checkbox]{
-			opacity: 0;
-			width: 0;
-			height: 0;
-		}
-		input:checked + #slider{
-			transform:translateX(100%);
-		}
-		label {
-			left:0;
-			width:100%;
-			position:absolute;
-			z-index:5;
-			padding:calc(var(--button-height) / 8);
-		}
-		#slider{
-			border-radius:50%;
-			width:50%;
-			height:100%;
-			background-color:white;
-			left:0;
-			z-index:10;
-		}
-		</style>
-		<script>
-			var qq=true;
-			function go() {
-				var slider=document.getElementById("slider");
-				if (qq)
-					slider.style.transform="translateX(100%)";
-				else
-					slider.style.transform="translateX(-1%)";
-				qq=!qq;	
+			.lower,
+			.upper {
+				padding:0px;
+				margin:0px;
+				border: 1px solid black;
+				position:relative;
 			}
-		</script>
+			.upperToolbar{
+				border: 1px solid black;
+				z-index:1;
+				position:absolute;
+				float:left;
+				width:100%;
+				
+				bottom:0;
+				text-align:center;
+				display:flex;
+				justify-content:center;
+			}
+			.wrapper {
+			  display: grid;
+			  padding:5px;
+			  margin:5px;
+			  grid-gap: 5px;
+			  grid-template-columns: 1fr;
+			  grid-template-rows: 6.5fr 3.5fr;
+			  border: 1px solid black;
+			}
+			/* Extra small devices (phones, 600px and down) */
+			@media only screen and (max-width: 600px) {
+				body {
+					background-color: red;
+				}
+			}
+
+			/* Small devices (portrait tablets and large phones, 600px and up) */
+			@media only screen and (min-width: 600px) {
+				body {
+					background-color: green;
+				}				
+			}
+
+			/* Medium devices (landscape tablets, 768px and up) */
+			@media only screen and (min-width: 768px) {
+				body {
+					background-color: blue;
+				}
+			}
+
+			/* Large devices (laptops/desktops, 992px and up) */
+			@media only screen and (min-width: 992px) {
+				body {
+					background-color: magenta;
+				}
+			}
+
+			/* Extra large devices (large laptops and desktops, 1200px and up) */
+			@media only screen and (min-width: 1200px) {
+				body {
+					background-color: Beige;
+				}
+			}
+			
+			html,body {
+				height:100%;
+				width:100%;
+				padding:0px;
+				margin:0px;
+				display: grid;
+				grid-template-columns: 1fr;
+				grid-template-rows: 1fr;
+			}
+			video{
+				float:left;
+				height:100%;
+				width:100%;
+				object-fit:cover;
+				z-index:0;
+				position:absolute;
+			}
+		</style>
 	</head>
 	<body>
-		<div class="button">
-			<input type=checkbox>
-			<label>sfds</label>
-			<div id="slider"></div>
+		<div class="wrapper">
+			<div class="upper">
+				<div class="upperToolbar">
+					<img srcset="img/share_video_48.png 48w,
+								 img/share_video_64.png 64w,
+								 img/share_video_96.png 96w, 
+                                 img/share_video_128.png 128w">  								 
+					
+				</div>
+				<video id="selfView"></video>
+			</div>
+			<div class="lower">
+				L
+			</div>
 			
 		</div>
-		<br>
-		<button onclick="go()">
-		go
-		</button>
 	</body>
 </html>	
