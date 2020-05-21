@@ -87,21 +87,40 @@
 				position:absolute;
 			}
 		</style>
+		<script>        
+			// Defining event listener function
+			function displayWindowSize(){
+				// Get width and height of the window excluding scrollbars
+				var w = document.documentElement.clientWidth;
+				var h = document.documentElement.clientHeight;
+				
+				// Display result inside a div element
+				document.getElementById("result").innerHTML = "Width: " + w + ", " + "Height: " + h;
+			}
+			
+			$( document ).ready(function(){
+				displayWindowSize();
+				$( window ).resize(displayWindowSize);
+			});
+			
+		</script>		
 	</head>
 	<body>
 		<div class="wrapper">
 			<div class="upper">
 				<div class="upperToolbar">
-					<img srcset="img/share_video_48.png 48w,
-								 img/share_video_64.png 64w,
-								 img/share_video_96.png 96w, 
-                                 img/share_video_128.png 128w">  								 
+					<picture>
+						<source media="(max-height: 600px)" srcset="img/share_video_48.png">
+						<source media="(min-height: 600px) and (max-height: 991px)" srcset="img/share_video_64.png">
+						<source media="(min-height: 991px)" srcset="img/share_video_128.png">
+						<img src="img/share_video_48.png">
+					</picture>					 								 
 					
 				</div>
 				<video id="selfView"></video>
 			</div>
-			<div class="lower">
-				L
+			<div class="lower" id="result">
+				
 			</div>
 			
 		</div>
