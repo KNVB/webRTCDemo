@@ -1,0 +1,132 @@
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	</head>
+	<style>
+		.lower,
+		.upper {
+			padding:0px;
+			margin:0px;
+			border: 1px solid black;
+			position:relative;
+		}
+		.lowerToolbar{
+			border: 1px solid black;
+			z-index:1;
+			position:absolute;
+			float:left;
+			width:100%;
+			padding:0;
+			margin:0;
+			display:flex;
+			justify-content:space-evenly;
+			flex-direction:row;
+			align-items:center;
+		}
+		.onOffSwitchInput{
+			display:none;
+		}
+		.onOffSwitchLabel{
+			width:60px;
+			height:30px;
+			border-radius:30px;
+			padding:5px;
+			position:relative;
+			background-color:red;
+			display:flex;
+			align-items:center;
+			box-sizing: content-box;
+			cursor:pointer;
+		}
+		.onOffSwitchSlider{
+			width:50%;
+			height:100%;
+			background-color:white;
+			z-index:10;
+			border-radius:100%;
+		}
+		.onOffSwitchText{
+			position:absolute;
+			width: inherit;
+			z-index:5;
+			border-radius:10%;
+			text-align:right;
+			color:white;
+			font-family:arial;
+			font-weight:bold;
+		}
+		.onOffSwitchText::after{
+			content:"OFF"
+		}
+		.onOffSwitchInput{
+			display:none;
+		}
+		.onOffSwitchInput:checked ~ .onOffSwitchLabel {
+				background-color:green;
+		}
+		.onOffSwitchInput:checked ~ .onOffSwitchLabel > div.onOffSwitchSlider{
+			transform:translateX(100%);
+		}
+		.onOffSwitchInput:checked ~ .onOffSwitchLabel > div.onOffSwitchText{
+			text-align:left;
+		}
+		.onOffSwitchInput:checked ~ .onOffSwitchLabel > div.onOffSwitchText::after{
+			content:"ON"
+		}
+		.wrapper {
+		  display: grid;
+		  padding:5px;
+		  margin:5px;
+		  grid-gap: 5px;
+		  grid-template-columns: 1fr;
+		  grid-template-rows: 6fr 4fr;
+		  border: 1px solid black;
+		}
+		html,body {
+			height:100%;
+			width:100%;
+			padding:0px;
+			margin:0px;
+			display: grid;
+			grid-template-columns: 1fr;
+			grid-template-rows: 1fr;
+		}
+		video{
+			float:left;
+			height:100%;
+			width:100%;
+			object-fit:cover;
+			z-index:0;
+			position:absolute;
+		}
+	</style>
+	<body>
+		<div class="wrapper">
+			<div class="upper">
+				<video id="selfView" controls></video>
+			</div>
+			<div class="lower">
+				<div class="lowerToolbar">
+					<div>
+						<label>Share Audio:</label>
+						<input type="checkbox" id="shareAudio" class="onOffSwitchInput" checked>
+						<label for="shareAudio" class="onOffSwitchLabel">
+							<div class="onOffSwitchText"></div>
+							<div class="onOffSwitchSlider"></div>
+						</label>
+					</div>
+					<div>
+						<label>Share Video:</label>
+						<input type="checkbox" id="shareVideo" class="onOffSwitchInput" checked>
+						<label for="shareVideo" class="onOffSwitchLabel">
+							<div class="onOffSwitchText"></div>
+							<div class="onOffSwitchSlider"></div>
+						</label>
+					</div>
+			</div>
+		</div>
+	</body>	
+</html>
