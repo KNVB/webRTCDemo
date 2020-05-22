@@ -27,32 +27,43 @@
 				});
 			});
 		</script>
+		<style>
+			video{
+				object-fit:cover;
+			}
+		</style>	
 	</head>
 	<body class="container-fluid p-1 h-100">
 		<div class="container-fluid h-100 border border-primary p-1">
 			<div class="row border border-danger h-50 p-0 no-gutters">
-				<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 p-1">
-					dsfsdf
+				<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 p-0 position-relative">
+					<video id="selfView" class="h-100 w-100 position-absolute" controls></video>
 				</div>
 			</div>
-			<div class="row h-50 p-0 border border-danger no-gutters">
-				<div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 p-1">
-					<div class="btn-group-toggle" data-toggle="buttons">
-					  <label class="btn btn-success">
+			<div class="row p-0 border border-danger no-gutters">
+				<div class="d-flex flex-row justify-content-center col-xs-12 col-sm-12 col-md-12 col-lg-12 p-1 border border-success">
+					<div class="btn-group-toggle p-1" data-toggle="buttons">
+					  <label class="btn-sm btn btn-lg btn-success">
 						Share Audio:<span class="badge badge-success">On</span>
 						<input type="checkbox" id="shareAudio" checked>
 					  </label>
 					</div>
-				</div>	
-				<div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 p-1">	
-					<div class="btn-group-toggle" data-toggle="buttons">
-					  <label class="btn btn-success">
+					<div class="btn-group-toggle p-1" data-toggle="buttons">
+					  <label class="btn btn-sm btn-lg btn-success">
 						Share Video:<span class="badge badge-success">On</span>
 						<input type="checkbox" id="shareVideo" checked>
 					  </label>
 					</div>
 				</div>	
-			</div>		
+			</div>
+			<div class="row p-0 border border-danger no-gutters">
+				<div class="d-flex flex-row justify-content-center col-xs-12 col-sm-12 col-md-12 col-lg-12 p-1 border border-success">
+					
+				</div>
+			</div>
+			<!--
+			<div style="height:60px;width:120px;" class="border border-danger no-gutters"></div>
+			-->			
 		</div>
 	</body>
 </html>
