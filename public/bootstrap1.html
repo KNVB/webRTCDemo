@@ -36,12 +36,18 @@
 	<body class="container-fluid p-1 h-100">
 		<div class="container-fluid h-100 border border-primary p-1">
 			<div class="row border border-danger h-50 p-0 no-gutters">
-				<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 p-0 position-relative">
+				<div class="col p-0 position-relative">
 					<video id="selfView" class="h-100 w-100 position-absolute" controls></video>
 				</div>
 			</div>
-			<div class="row p-0 border border-danger no-gutters">
-				<div class="d-flex flex-row justify-content-center col-xs-12 col-sm-12 col-md-12 col-lg-12 p-1 border border-success">
+			<div class="row p-0 border border-danger no-gutters d-flex flex-row">
+				<div class="d-flex flex-row justify-content-center col p-1 border border-success">
+					<div class="btn-group-toggle p-1" data-toggle="buttons">
+					  <label class="btn btn-sm btn-lg btn-success">
+						Share Video:<span class="badge badge-success">On</span>
+						<input type="checkbox" id="shareVideo" checked>
+					  </label>
+					</div>
 					<div class="btn-group-toggle p-1" data-toggle="buttons">
 					  <label class="btn-sm btn btn-lg btn-success">
 						Share Audio:<span class="badge badge-success">On</span>
@@ -49,21 +55,24 @@
 					  </label>
 					</div>
 					<div class="btn-group-toggle p-1" data-toggle="buttons">
-					  <label class="btn btn-sm btn-lg btn-success">
-						Share Video:<span class="badge badge-success">On</span>
-						<input type="checkbox" id="shareVideo" checked>
+					  <label class="btn-sm btn btn-lg btn-danger">
+						Share Screen:<span class="badge badge-danger">Off</span>
+						<input type="checkbox" id="shareScreen">
 					  </label>
 					</div>
-				</div>	
-			</div>
-			<div class="row p-0 border border-danger no-gutters">
-				<div class="d-flex flex-row justify-content-center col-xs-12 col-sm-12 col-md-12 col-lg-12 p-1 border border-success">
-					
 				</div>
 			</div>
-			<!--
-			<div style="height:60px;width:120px;" class="border border-danger no-gutters"></div>
-			-->			
+			<div class="row no-gutters d-flex justify-content-center border border-success p-1">
+				<div class="col p-0 d-flex flex-row justify-content-center">
+					<button class="btn-sm btn btn-lg btn-success">Create a meeting</button>
+				</div>	
+			</div>
+			<div class="row no-gutters d-flex justify-content-center border border-warning p-0 flex-grow-1 flex-shrink-0">
+				<div class="col p-0 d-flex flex-row justify-content-center overflow-auto">
+					dds
+				</div>	
+			</div>
 		</div>
+
 	</body>
 </html>
