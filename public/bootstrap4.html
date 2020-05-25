@@ -49,7 +49,7 @@
 	</head>
 	<body class="container-fluid p-1 h-100">
 		<div class="container-fluid h-100 border border-primary p-1">
-			<div class="row border border-danger p-0 no-gutters" style="height:35%">
+			<div class="row p-0 no-gutters" style="height:35%">
 				<div class="col p-0 position-relative">
 					<video id="selfView" class="h-100 w-100 position-absolute" controls></video>
 				</div>
@@ -81,18 +81,35 @@
 							</div>
 						</div>		
 					</div>
-					<div class="row p-0 no-gutters">
-						<div id="selectDiv" class="d-flex flex-row justify-content-around col p-1 border border-success">
-							<i class="fas fa-2x fa-info-circle"></i>
-							<i class="fas fa-2x fa-user-friends"></i>
-							<i class="far fa-2x fa-comment"></i>
-						</div>
-					</div>
-					<div id="messageDiv" class="row  p-0 no-gutters flex-grow-1 position-relative">
-						<div class="col p-1 d-none  position-absolute h-100 border border-success">
+					
+					<ul class="nav nav-pills p-1 justify-content-around border border-success" id="pills-tab" role="tablist">
+					  <li class="nav-item">
+						<a class="nav-link active" 
+							id="pills-info-tab" data-toggle="pill" 
+							href="#pills-info" role="tab" aria-controls="pills-info" aria-selected="true">
+							<i class="fas fa-1x fa-info-circle"></i>
+						</a>
+					  </li>
+					  <li class="nav-item">
+						<a class="nav-link" 
+							id="pills-member-tab" data-toggle="pill" 
+							href="#pills-member" role="tab" aria-controls="pills-member" aria-selected="false">
+							<i class="fas fa-1x fa-user-friends"></i>
+						</a>
+					  </li>
+					  <li class="nav-item">
+						<a class="nav-link" 
+							id="pills-message-tab" data-toggle="pill" 
+							href="#pills-message" role="tab" aria-controls="pills-message" aria-selected="false">
+							<i class="far fa-1x fa-comment"></i>
+						</a>
+					  </li>
+					</ul>
+					<div class="d-flex tab-content border border-success flex-grow-1 position-relative" id="pills-tabContent" >
+						<div class="p-1 tab-pane fade show active" id="pills-info" role="tabpanel" aria-labelledby="pills-info-tab">
 							<i class="fas fa-2x fa-share-alt"></i>
 						</div>
-						<div class="col p-0 d-none position-absolute h-100 overflow-auto border border-success">	
+						<div class="tab-pane fade p-0 position-absolute h-100 w-100 overflow-auto" id="pills-member" role="tabpanel" aria-labelledby="pills-member-tab">
 							<div class="w-100 border border-dark d-flex flex-row align-items-center">
 								<video controls style="height:60px;width:120px"></video>
 								sdfsdf
@@ -126,8 +143,11 @@
 								sdfsdf
 							</div>
 						</div>
-						<div class="col p-1 border border-success">
-							fddssd
+						<div class="tab-pane fade border border-warning position-absolute h-100 w-100 p-0" id="pills-message" role="tabpanel" aria-labelledby="pills-message-tab">
+							<div class="d-flex flex-column border border-info position-relative p-0 h-100 w-100">
+								<div class="border border-info p-0 h-75 w-100 overflow-auto" contenteditable="true">a</div>
+								<div class="border border-info p-0 h-25 w-100 overflow-hidden" contenteditable="true">b</div>
+							</div>
 						</div>
 					</div>
 				</div>
