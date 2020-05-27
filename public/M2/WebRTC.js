@@ -29,7 +29,7 @@ class WebRTC{
 			clearLog();
 			createConnection();
 			await getLocalMedia();
-			//createOffer();				
+			createOffer();				
 		});
 		this.hangUp=(()=>{
 			writeLog("Hang Up");
@@ -237,9 +237,11 @@ class WebRTC{
 		}	
 		function handleNegotiation(event) {
 			writeLog('Handle Negotitation');
+			/* 
 			if (isCaller==2) {
 				createOffer();
 			}
+			*/
 		}	
 		function handleRemoteTrack(event) {
 			writeLog("Track event:"+event.track.kind); 
