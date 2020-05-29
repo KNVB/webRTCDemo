@@ -14,7 +14,6 @@
 		
 		<script>
 			$( document ).ready(function(){
-				setHeight();
 				$(".btn").click(function (){
 					if ($(this).hasClass("active")) {
 						$(this).removeClass("btn-success").addClass("btn-danger");
@@ -26,19 +25,36 @@
 						$(this).children(".badge").text("On");
 					}
 				});
+				/*
+				$("#messageText").blur(()=>{
+					$("html,body").addClass("h-100");
+					$("html,body").height(window.outerHeight);
+				});
+				$("#messageText").click(()=>{
+					$("html,body").removeClass("h-100");
+					$("html,body").height($(window).height());
+				});
+				*/
+				$("#messageText").keypress((event)=>{
+					if (event.which==13) {
+						var message=event.target.value.trim();
+						if ((message) &&(message!="")) {
+							$("#chatMessageHistory").append(event.target.value+"<br>");
+							event.target.value="";
+						}	
+					}
+				});
+				$(window).resize(()=>{
+					$("html,body").height($(window).height());
+				});	
 				$("#pills-message-tab").click(()=>{
 					var textBox=document.getElementById("messageText");
 					textBox.scrollIntoView();
 					textBox.focus();
 					textBox.select();
 				});
-				$(window).resize(()=>{
-					setHeight();
-				});
+					
 			});
-			function setHeight(){
-				$("html,body").height($(window).height());
-			}
 		</script>
 		<style>
 			video{
@@ -166,7 +182,7 @@
 							<div class="tab-pane fade position-absolute h-100 w-100 p-1" id="pills-message" role="tabpanel" aria-labelledby="pills-message-tab">
 								<div class="d-flex flex-column position-relative p-0 h-100 w-100">
 									<div id="chatMessageHistory" class="p-0 w-100 flex-grow-1" style="overflow-y:scroll"></div>
-									<input type="text" id="messageText">
+									<input type="text" id="messageText" placeholder="Send message to all member">
 								</div>
 							</div>
 						</div>
