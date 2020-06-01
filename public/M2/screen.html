@@ -1,0 +1,37 @@
+<html>
+	<head>
+		<script>
+			async function startCapture(displayMediaOptions) {
+			  let captureStream = null;
+
+			  try {
+				captureStream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+			  } catch(err) {
+				console.error("Error: " + err);
+			  }
+			  return captureStream;
+			}
+			function getConstraints() {
+				
+				return {
+						"audio":true,
+						"video":true
+				}
+			}
+			function start() {
+				navigator.mediaDevices.getDisplayMedia(getConstraints())
+				.then((stream)=>{
+					document.getElementById("selfView").srcObject=stream;
+				})
+				.catch((error)=>{
+					console.log("error="+error);
+				});
+			}
+		</script>	
+	</head>
+	<body>
+		<video id="selfView" autoplay>
+		</video>
+		<button onclick="start()">Start</button>
+	</body>
+</html>	
