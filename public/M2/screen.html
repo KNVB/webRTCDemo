@@ -1,16 +1,6 @@
 <html>
 	<head>
 		<script>
-			async function startCapture(displayMediaOptions) {
-			  let captureStream = null;
-
-			  try {
-				captureStream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
-			  } catch(err) {
-				console.error("Error: " + err);
-			  }
-			  return captureStream;
-			}
 			function getConstraints() {
 				
 				return {
@@ -20,8 +10,12 @@
 			}
 			function start() {
 				navigator.mediaDevices.getDisplayMedia(getConstraints())
+				//navigator.mediaDevices.getUserMedia(getConstraints())
 				.then((stream)=>{
-					document.getElementById("selfView").srcObject=stream;
+					//document.getElementById("selfView").srcObject=stream;
+					stream.getTracks().forEach((track)=>{
+						console.log(track.kind,track.label);
+					});
 				})
 				.catch((error)=>{
 					console.log("error="+error);
