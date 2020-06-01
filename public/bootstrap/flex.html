@@ -15,17 +15,29 @@
 		<script>
 			$( document ).ready(function(){
 				$(window).resize(()=>{
-					$("html,body").height($(window).height());
+					$("html,body").height(window.innertHeight);
 					document.activeElement.scrollIntoView();
+					tabContentHeight=$("#pills-tabContent").height();
+					messageTextHeight=$("#messageText").height();
+					if (tabContentHeight<messageTextHeight) {
+						$("#pills-tabContent").height(messageTextHeight);
+					}
 				});
 			});
 		</script>
+		<style>
+			/*
+			video{
+				object-fit:cover;
+			}
+			*/
+		</style>	
 	</head>
 	<body class="p-1">
 		<div class="p-0 container-fluid d-flex h-100 flex-column border border-danger">
 			<div class="p-0 row h-25 no-gutters">
-				<div class="p-0 col-12 col-sm-12 col-lg-12 col-xl-12">
-					<video id="selfView" class="h-100 w-100" controls muted>
+				<div class="p-0 col-12 col-sm-12 col-lg-12 col-xl-12 position-relative">
+					<video id="selfView" class="h-100 w-100 position-absolute" controls muted>
 						<source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
 					</video>
 				</div>
@@ -78,7 +90,7 @@
 						</a>
 					  </li>
 					</ul>
-					<div class="tab-content flex-grow-1 position-relative border border-warning" style="min-height:100px" id="pills-tabContent">
+					<div class="tab-content flex-grow-1 position-relative border border-warning p-0" id="pills-tabContent">
 						<div class="p-1 tab-pane fade show active" id="pills-info" role="tabpanel" aria-labelledby="pills-info-tab">
 							<i class="fas fa-2x fa-share-alt"></i>
 						</div>

@@ -15,8 +15,9 @@
 		<script>
 			$( document ).ready(function(){
 				$(window).resize(()=>{
+					$("html,body").height(window.innertHeight);
 					document.activeElement.scrollIntoView();
-					alert($(window).height());
+					//alert($(window).height());
 				});
 			});
 		</script>
