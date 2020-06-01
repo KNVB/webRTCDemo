@@ -15,7 +15,7 @@
 		<script>
 			$( document ).ready(function(){
 				$(window).resize(()=>{
-					$("html,body").height(window.innertHeight);
+					$("html,body").height($(window).height());
 					document.activeElement.scrollIntoView();
 					//alert($(window).height());
 				});
@@ -23,7 +23,7 @@
 		</script>
 	</head>
 	<body class="p-1">
-		<div class="p-0 container-fluid d-flex h-100 flex-row border border-danger">
+		<div class="p-0 container-fluid d-flex h-100 flex-row border border-0">
 			<div class="p-0 row h-100 w-50 no-gutters">
 				<div class="p-0 col-12 col-sm-12 col-lg-12 col-xl-12 position-relative">
 					<video id="selfView" class="h-100 w-100" controls muted>
@@ -32,7 +32,7 @@
 				</div>
 			</div>
 			<div class="p-0 row h-100 w-50 border border-secondary no-gutters">
-				<div class="col p-1 d-flex flex-column">
+				<div class="col-12 col-sm-12 col-lg-12 col-xl-12 p-1 d-flex flex-column">
 					<div class="d-flex flex-row justify-content-center">
 						<div class="btn-group-toggle p-1" data-toggle="buttons">
 						  <label class="btn btn-sm btn-lg btn-success">
