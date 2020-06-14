@@ -2,15 +2,20 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>WebRTC Caller</title>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+		
 		<script src="/socket.io/socket.io.js"></script>
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-
-		<script src="Peer.js"></script>
+		<script src="LocalMedia.js"></script>
+		<!--script src="Peer.js"></script -->
 		<script>
 			
 			var peer=null;
 			var socket = io.connect();
 			var dataChannel=null,pc=null,polite=false;
+			var localMedia=new LocalMedia();
 			var localVideo,remoteVideo;
 			var makingOffer = false, ignoreOffer = false;
 			var configuration = {iceServers: 
@@ -21,38 +26,14 @@
 			$( document ).ready(function() {
 				localVideo=document.getElementById("selfView");
 				remoteVideo=document.getElementById("remoteView");
+				
 			});
-			async function addMedia() {
-				let stream = null;
-				try {
-					stream = await navigator.mediaDevices.getUserMedia(getConstraints());
-					localVideo.srcObject =stream;
-					stream.getTracks().forEach((track)=> {
-						pc.addTrack(track,stream);
-						//writelog(track.kind);
-					});
-					/* use the stream */
-				} catch(err) {
-					writeLog("getLocalMedia failure:"+err);
-				}
-				finally {
-					writeLog("getLocalMedia complete");
-					return stream
-				}
-			}		
+		
 			function call() {
 				polite=true;
 				createConnection();
 			}
-			function closeVideoStream(v){
-				writeLog("v="+v);
-				if (v.srcObject!=null) {
-					v.srcObject.getTracks().forEach((track)=>{
-						track.stop();
-					});
-					v.srcObject=null;
-				}
-			}
+			
 			function createConnection(){
 				pc=new RTCPeerConnection(configuration);
 				pc.onconnectionstatechange = handleConnectionStateChange;
@@ -197,12 +178,49 @@
 				} finally {
 					makingOffer = false;
 				}
-				
 			}
 //========================================================================================
 			function clearLog() {
 			  chatelement = document.getElementById('logger');
 			  chatelement.innerHTML='';
+			}
+			function closeVideoStream(v){
+				writeLog("v="+v);
+				if (v.srcObject!=null) {
+					v.srcObject.getTracks().forEach((track)=>{
+						track.stop();
+					});
+					v.srcObject=null;
+				}
+			}
+			function setupVideo(stream){
+				var senders=pc.getSenders();
+				senders.forEach((sender)=>{
+					if (sender.track) {
+						sender.track.stop();
+					}
+					pc.removeTrack(sender);
+				});
+				stream.getTracks().forEach((track)=>{
+					pc.addTrack(track,stream);
+				});
+				localVideo.srcObject=stream;
+			}
+			async function updateSrc(){
+				var shareAudio=document.getElementById("shareAudio");
+				var videoSrc=document.getElementById("videoSrc");
+				
+				closeVideoStream(localVideo);
+				if (($(videoSrc).val()!="no") || ($(shareAudio).val()=="yes")) {
+					try{
+						var stream=await localMedia.getStream($(videoSrc).val(),$(shareAudio).val());
+						if (stream!=null){
+							setupVideo(stream);
+						}
+					}catch (error) {
+						alert("Fail to get Media Stream:"+error);
+					}					
+				}
 			}
 			function writeLog(message) {
 				var logger=document.getElementById("logger");
@@ -244,6 +262,7 @@
 		</script>
 	</head>
 	<body>
+	
 		<table border=1>
 			<tr>
 				<td>
@@ -256,8 +275,38 @@
 				</td>
 			</tr>
 			<tr>
-				<td><button onclick="call()">Make A Call</button><button onclick="addMedia()">Add Media</button></td>
-				<td><button onclick="hangUp()">Hang Up</button></td>
+				<td>
+					<div class="d-flex flex-row align-items-center justify-content-center">
+						<div class="btn-group-toggle d-flex justify-content-center p-1">
+							<button class="btn-sm btn btn-lg btn-success" onclick="call()">Make A Call</button>
+						</div>
+						<div class="btn-group-toggle p-1">
+							<label class="btn-sm btn btn-lg btn-success">
+								Share 
+								<select name="videoSrc" id="videoSrc" class="bg-success text-white" onchange="updateSrc()">
+									<option value="no" >No</option>
+									<option value="webCam">Web Cam</option>
+									<option value="screen">Screen</option>
+								</select>
+								Video
+							</label>
+						</div>
+						<div class="btn-group-toggle p-1">
+							<label class="btn-sm btn btn-lg btn-success">
+								Share Audio
+								<select name="shareAudio" id="shareAudio" class="bg-success text-white" onchange="updateSrc()">
+									<option value="yes">Yes</option>
+									<option value="no" >No</option>
+								</select>
+							</label>
+						</div>
+					</div>
+				</td>
+				<td>
+					<div class="btn-group-toggle d-flex justify-content-center p-1">
+						<button class="btn-sm btn btn-lg btn-success" onclick="hangUp()">Hangup</button>
+					</div>
+				</td>
 			</tr>	
 		</table>
 		<div id="logger" style="border:1px solid black;width:100%;height:30%;overflow:scroll">
