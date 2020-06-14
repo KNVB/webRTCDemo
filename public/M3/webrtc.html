@@ -185,10 +185,13 @@
 			  chatelement.innerHTML='';
 			}
 			function closeVideoStream(v){
-				writeLog("v="+v);
+				writeLog("closeVideoStream:id="+v.id);
+				writeLog("closeVideoStream:v.srcObject="+v.srcObject);
 				if (v.srcObject!=null) {
+					writeLog("closeVideoStream:no. of track="+v.srcObject.getTracks().length);
 					v.srcObject.getTracks().forEach((track)=>{
 						track.stop();
+						writeLog(v.id+" "+track.kind+" is stopped.");
 					});
 					v.srcObject=null;
 				}
