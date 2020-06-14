@@ -23,10 +23,31 @@ io.on('connection', function(socket) {
 });
 io.on('connection', (socket) => {
 	console.log('a user connected@'+(new Date()));
-	socket.on("send",(req)=>{
-		console.log("Receive send request");
-		socket.broadcast.emit("receive", req);
+	socket.on('chat message', (msg) => {
+		io.emit('chat message', msg);
 	});
+	socket.on("send_answer", (answer) =>{
+		console.log("receive an answer:"+answer+"@"+(new Date()));
+		socket.broadcast.emit("receive_answer",answer);
+	});
+	socket.on("send_ice", (iceCandidate) =>{
+		console.log("receive an ICE candidate:"+iceCandidate);
+		userList.forEach((socketId) =>{
+			console.log(socket.id,socketId);
+			if (socket.id!=socketId)
+				io.to(socketId).emit("receive_iceCandidate",iceCandidate);
+		});
+	  //socket.broadcast.emit("receive_iceCandidate",iceCandidate);
+	});
+	socket.on("send_offer", (offer) =>{
+		console.log("receive an offer:"+offer+"@"+(new Date()));
+		userList.forEach((socketId) =>{
+			console.log(socket.id,socketId);
+			if (socket.id!=socketId)
+				io.to(socketId).emit("receive_offer",offer);
+		});
+	  //socket.broadcast.emit("receive_offer",offer);
+	});  
 	socket.on('disconnect', () => {
 		console.log('user disconnected@'+(new Date()));
 	});
