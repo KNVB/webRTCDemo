@@ -9,120 +9,43 @@
 		
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="LocalMedia.js"></script>
-		<!--script src="Peer.js"></script -->
+		<script src="Peer.js"></script>
 		<script>
-			
-			var peer=null;
 			var socket = io.connect();
-			var dataChannel=null,pc=null,polite=false;
 			var localMedia=new LocalMedia();
-			var localVideo,remoteVideo;
-			var makingOffer = false, ignoreOffer = false;
-			var configuration = {iceServers: 
-				[{urls: "stun:stun.stunprotocol.org"},
-				 {urls: "stun:stun.l.google.com:19302"},
-				 {urls: "turn:numb.viagenie.ca", credential: "turnserver", username: "sj0016092@gmail.com"}		
-				]};
+			var localVideo,peer=new Peer(),remoteVideo;
 			$( document ).ready(function() {
 				localVideo=document.getElementById("selfView");
+				localMedia.setLogger(writeLog);
+				peer.setLogger(writeLog);
+				peer.setOntrackHandler(handleRemoteTrack);
+				peer.setSocket(socket);
 				remoteVideo=document.getElementById("remoteView");
-				
 			});
-		
-			function call() {
-				polite=true;
-				createConnection();
+//============================================================================================			
+			function call(){
+				peer.call();
 			}
-			
-			function createConnection(){
-				pc=new RTCPeerConnection(configuration);
-				pc.onconnectionstatechange = handleConnectionStateChange;
-				pc.ondatachannel = handleDataChannelEvent;
-				pc.onicecandidate=iceCandidateEventHandler;
-				pc.oniceconnectionstatechange = handleICEConnectionStateChange;
-				pc.onicegatheringstatechange =handleICEGatheringStateChange;
-				pc.onnegotiationneeded=negotiationEventHandler;
-				pc.onsignalingstatechange=handleSignalingStateChange;
-				pc.ontrack=handleRemoteTrack;
-				
-				dataChannel= pc.createDataChannel('chat');
-				writeLog("createConnection:"+pc.currentRemoteDescription);
-			}
-			function dataChannelClose() {
-				writeLog('Data channel closed');
-				dataChannel.onopen = null;
-				dataChannel.onmessage = null;
-				dataChannel.onclose = null;
-				dataChannel.onerror = null;
-				dataChannel = null;
-			}
-			function dataChannelError(event) {
-				writeLog('Data channel error:'+event.message);
-			}
-			function dataChannelOpen() {
-			  writeLog('data channel is opened');
-			}
-			function dataChannelMessage(message) {
-				writeLog('Received Message from Data Channel:'+message.data);
-				text = message.data;
-				chatlog(text);
-			}
-			function getConstraints() {
-				/*
-				return {"audio":true,
-				"video":true}
-				*/
-				return {
-						"audio":{
-									channelCount: 2,
-									echoCancellation:true,
-									sampleSize: 16
-								},
-						"video":{
-									width:{ min: 640, ideal: 1280, max: 1920 },
-									height:{ min: 480, ideal: 720, max: 1080 }
-								}
-						}; 
-			}
-			function handleConnectionStateChange(event) {
-			  writeLog("pc.connectionState="+pc.connectionState);
-			  switch(pc.connectionState) {
-				case "disconnected":
-				case "failed":
-					// One or more transports has terminated unexpectedly or in an error
-					hangUp();
-					break;
-				case "closed":
-					hangUp();
-					break;
-			  }
-			}
-			function handleDataChannelEvent(event){
-				writeLog('Data channel is created!');
-				event.channel.onopen = dataChannelOpen;
-				event.channel.onmessage = dataChannelMessage;
-				event.channel.onclose = dataChannelClose;
-				event.channel.onerror = dataChannelError;
-			}
-			function handleICEConnectionStateChange(event) {
-				writeLog('ice connection state: ' + pc.iceConnectionState);
-				if (pc.iceConnectionState=="failed"){
-					writeLog('Restart ICE');
-					pc.restartIce();
-				}
-				if (pc.iceConnectionState=="disconnected") {
-					hangUp();
-				}				
-				/*
-				if ((pc.iceConnectionState=="disconnected") || (pc.iceConnectionState=="failed")){
-					writeLog('Restart ICE');
-					pc.restartIce();
-				}
-				*/
-			}
-			function handleICEGatheringStateChange() {
-				writeLog("ICE Gathering State ="+pc.iceGatheringState);
+			function clearLog() {
+			  chatelement = document.getElementById('logger');
+			  chatelement.innerHTML='';
 			}	
+			function closeVideoStream(v){
+				writeLog("closeVideoStream:id="+v.id);
+				writeLog("closeVideoStream:v.srcObject="+v.srcObject);
+				if (v.srcObject!=null) {
+					writeLog("closeVideoStream:no. of track="+v.srcObject.getTracks().length);
+					v.srcObject.getTracks().forEach(async(track)=>{
+						await track.stop();
+					});
+					v.srcObject=null;
+				}
+			}
+			function hangUp() {
+				peer.hangUp();
+				closeVideoStream(localVideo);
+				closeVideoStream(remoteVideo);
+			}
 			function handleRemoteTrack(event) {
 				writeLog("Track event:"+event.track.kind); 
 				var remoteStream;
@@ -132,141 +55,34 @@
 				remoteStream=remoteVideo.srcObject;
 				remoteStream.addTrack(event.track, remoteStream);
 			}
-			function handleSignalingStateChange(event) {
-				writeLog("pc.signalingState="+pc.signalingState);
-				if(pc.signalingState=="stable"){
-					writeLog("ICE negotiation complete");
-				}
-			} 	
-			function hangUp() {
-				writeLog("Hangup");
-				closeVideoStream(localVideo);
-				closeVideoStream(remoteVideo);
-
-				if (dataChannel)
-					dataChannel.close();
-				if (pc){
-					pc.close();
-					pc.onconnectionstatechange = null;
-					pc.ondatachannel = null;
-					pc.onicecandidate=null;
-					pc.oniceconnectionstatechange = null;
-					pc.onicegatheringstatechange =null;
-					pc.onnegotiationneeded=null;
-					pc.onsignalingstatechange=null;
-					pc.ontrack=null;
-					pc=null;
-				}
-			}
-			function iceCandidateEventHandler(event){
-				if (event.candidate==null){
-					writeLog("All ICE Candidates are sent");
-				} else {
-					writeLog("Send ICE Candidate");
-					socket.emit('send',{candidate:event.candidate});
-				}
-			}
-			async function negotiationEventHandler(){
-				writeLog('Handle Negotitation');
-				
-				try {
-					makingOffer = true;
-					await pc.setLocalDescription();
-					socket.emit("send",{ description: pc.localDescription });
-				} catch(err) {
-					writeLog(err);
-				} finally {
-					makingOffer = false;
-				}
-			}
-//========================================================================================
-			function clearLog() {
-			  chatelement = document.getElementById('logger');
-			  chatelement.innerHTML='';
-			}
-			function closeVideoStream(v){
-				writeLog("closeVideoStream:id="+v.id);
-				writeLog("closeVideoStream:v.srcObject="+v.srcObject);
-				if (v.srcObject!=null) {
-					writeLog("closeVideoStream:no. of track="+v.srcObject.getTracks().length);
-					v.srcObject.getTracks().forEach((track)=>{
-						track.stop();
-						writeLog(v.id+" "+track.kind+" is stopped.");
-					});
-					v.srcObject=null;
-				}
-			}
 			function setupVideo(stream){
-				var senders=pc.getSenders();
-				senders.forEach((sender)=>{
-					if (sender.track) {
-						sender.track.stop();
-					}
-					pc.removeTrack(sender);
-				});
-				stream.getTracks().forEach((track)=>{
-					pc.addTrack(track,stream);
-				});
 				localVideo.srcObject=stream;
 			}
 			async function updateSrc(){
 				var shareAudio=document.getElementById("shareAudio");
+				var stream=null;
 				var videoSrc=document.getElementById("videoSrc");
 				
 				closeVideoStream(localVideo);
-				if (($(videoSrc).val()!="no") || ($(shareAudio).val()=="yes")) {
-					try{
-						var stream=await localMedia.getStream($(videoSrc).val(),$(shareAudio).val());
-						if (stream!=null){
-							setupVideo(stream);
-						}
-					}catch (error) {
+				try{
+					stream=await localMedia.getStream($(videoSrc).val(),($(shareAudio).val()=="yes"));
+					writeLog("videoSrc="+$(videoSrc).val()+",shareAudio="+$(shareAudio).val()+",count="+stream.getTracks().length);
+					setupVideo(stream);
+				}catch (error) {
 						alert("Fail to get Media Stream:"+error);
-					}					
 				}
 			}
 			function writeLog(message) {
 				var logger=document.getElementById("logger");
 				logger.innerHTML=message+"<br>"+logger.innerHTML;
-			}	
+			}
 			socket.on("receive",async (req)=>{
-				let ignoreOffer = false;
-				if (pc==null)
-					createConnection();
-				if (req.description){
-					const offerCollision = (req.description.type == "offer") &&
-								 (makingOffer || pc.signalingState != "stable");
-
-					ignoreOffer = !polite && offerCollision;
-					if (ignoreOffer) {
-						return;
-					}
-				
-					await pc.setRemoteDescription(req.description);
-					
-					if (req.description.type =="offer") {
-						await pc.setLocalDescription();
-						socket.emit("send",{description: pc.localDescription});
-					}
-				} else {
-					if (req.candidate){
-						try {
-							if (pc.currentRemoteDescription){
-								await pc.addIceCandidate(req.candidate);
-							}
-						} catch(err) {
-							if (!ignoreOffer) {
-							  throw err;
-							}
-						}
-					}
-				}
-			});			
+				peer.receive(req);
+			});							
 		</script>
 	</head>
-	<body>
-	
-		<table border=1>
+	<body class="p-1">
+		<table border=1 class="w-100">
 			<tr>
 				<td>
 					<h1> Self View </h1>
@@ -310,7 +126,8 @@
 				</td>
 			</tr>	
 		</table>
-		<div id="logger" style="border:1px solid black;width:100%;height:30%;overflow:scroll">
+		<br>
+		<div id="logger" class="border border-primary w-100 h-25 overflow-auto">
 		</div>
 	</body>
 </html>	
