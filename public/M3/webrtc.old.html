@@ -26,7 +26,7 @@
 			$( document ).ready(function() {
 				localVideo=document.getElementById("selfView");
 				remoteVideo=document.getElementById("remoteView");
-				
+				localMedia.setLogger(writeLog);
 			});
 		
 			function call() {
@@ -189,9 +189,8 @@
 				writeLog("closeVideoStream:v.srcObject="+v.srcObject);
 				if (v.srcObject!=null) {
 					writeLog("closeVideoStream:no. of track="+v.srcObject.getTracks().length);
-					v.srcObject.getTracks().forEach((track)=>{
-						track.stop();
-						writeLog(v.id+" "+track.kind+" is stopped.");
+					v.srcObject.getTracks().forEach(async (track)=>{
+						await track.stop();
 					});
 					v.srcObject=null;
 				}
@@ -204,6 +203,7 @@
 					}
 					pc.removeTrack(sender);
 				});
+				writeLog(pc.getSenders().length);
 				stream.getTracks().forEach((track)=>{
 					pc.addTrack(track,stream);
 				});
@@ -213,16 +213,16 @@
 				var shareAudio=document.getElementById("shareAudio");
 				var videoSrc=document.getElementById("videoSrc");
 				
-				closeVideoStream(localVideo);
-				if (($(videoSrc).val()!="no") || ($(shareAudio).val()=="yes")) {
-					try{
-						var stream=await localMedia.getStream($(videoSrc).val(),$(shareAudio).val());
-						if (stream!=null){
-							setupVideo(stream);
-						}
-					}catch (error) {
-						alert("Fail to get Media Stream:"+error);
-					}					
+				try{
+					stream=await localMedia.getStream($(videoSrc).val(),($(shareAudio).val()=="yes"));
+					if (stream) {
+						writeLog("videoSrc="+$(videoSrc).val()+",shareAudio="+$(shareAudio).val()+",count="+stream.getTracks().length);
+						setupVideo(stream);
+					} else {
+						closeVideoStream(localVideo);
+					}
+				}catch (error) {
+						alert("Fail to get Media Stream:"+error+" at "+error.lineNumber);
 				}
 			}
 			function writeLog(message) {
@@ -270,11 +270,11 @@
 			<tr>
 				<td>
 					<h1> Self View </h1>
-					<video id="selfView" width="320" height="240" autoplay muted></video>
+					<video id="selfView" width="320" height="240" autoplay controls muted></video>
 				</td>
 				<td>
 					<h1> Remote View </h1>
-					<video id="remoteView" width="320" height="240" autoplay muted></video>
+					<video id="remoteView" width="320" height="240" autoplay controls muted></video>
 				</td>
 			</tr>
 			<tr>
@@ -305,6 +305,9 @@
 						</div>
 						<div class="btn-group-toggle d-flex justify-content-center p-1">
 							<button class="btn-sm btn btn-lg btn-success" onclick="hangUp()">Hangup</button>
+						</div>
+						<div class="btn-group-toggle d-flex justify-content-center p-1">
+							<button class="btn-sm btn btn-lg btn-success" onclick="clearLog()">Clear Log</button>
 						</div>
 					</div>
 				</td>

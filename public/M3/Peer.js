@@ -8,6 +8,16 @@ class Peer{
 		var dataChannel=null, ignoreOffer = false,makingOffer = false;
 		var pc=null,polite=false,ontrackHandler,socket;
 		var writeLog;
+		this.addStream=((stream)=>{
+			var senderList=pc.getSenders();
+			senderList.forEach((sender)=>{
+				pc.removeTrack(sender);
+			});
+			stream.getTracks().forEach((track)=>{
+				pc.addTrack(track);
+			});
+			
+		});
 		this.call=(()=>{
 			polite=true;
 			createConnection();
