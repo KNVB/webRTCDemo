@@ -5,21 +5,23 @@ class LocalMedia{
 			var stream=null;
 			switch (videoSrc) {
 				case "webCam":
-								stream=await getWebCamVideo(true,shareAudio);
-								break;
-				case "screen":	stream=await getShareDesktopVideo(shareAudio);
-								if (shareAudio){
-									if (stream.getAudioTracks().length<1) {
-										var audioStream=await getWebCamVideo(false,true);
-										audioStream.getAudioTracks().forEach((track)=>{
-											stream.addTrack(track);
-										});
-									}
-								}
-								break;
-				case "no":if (shareAudio){
-							stream=await getWebCamVideo(false,true);	
-						  }
+					stream=await getWebCamVideo(true,shareAudio);
+					break;
+				case "screen":	
+					stream=await getShareDesktopVideo(shareAudio);
+					if (shareAudio){
+						if (stream.getAudioTracks().length<1) {
+							var audioStream=await getWebCamVideo(false,true);
+							audioStream.getAudioTracks().forEach((track)=>{
+								stream.addTrack(track);
+							});
+						}
+					}
+					break;
+				case "no":
+					if (shareAudio){
+						stream=await getWebCamVideo(false,true);	
+					}
 			}
 			return stream;
 		});
