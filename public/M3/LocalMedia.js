@@ -1,15 +1,27 @@
 class LocalMedia{
 	constructor() {
-		
-		this.getShareDesktopVideo=(async ()=>{
-			return await getShareDesktopVideo();
-		});
-		
-		this.getWebCamVideo=(async ()=>{
-			return await getWebCamVideo(); 
-		});
-		this.getStream=(async(videoSrc,shareAudio)=>{
-			return await getStream(videoSrc,shareAudio);
+		var logger;
+		this.getStream=(async (videoSrc,shareAudio)=>{
+			var stream=null;
+			switch (videoSrc) {
+				case "webCam":
+								stream=await getWebCamVideo(true,shareAudio);
+								break;
+				case "screen":	stream=await getShareDesktopVideo(shareAudio);
+								if (shareAudio){
+									if (stream.getAudioTracks().length<1) {
+										var audioStream=await getWebCamVideo(false,true);
+										audioStream.getAudioTracks().forEach((track)=>{
+											stream.addTrack(track);
+										});
+									}
+								}
+								break;
+				case "no":if (shareAudio){
+							stream=await getWebCamVideo(false,true);	
+						  }
+			}
+			return stream;
 		});
 		this.setLogger=((wl)=>{
 			logger=wl;
@@ -31,64 +43,23 @@ class LocalMedia{
 							}
 					}; 
 		}
-		async function getStream(videoSrc,shareAudio){
-			var mediaStream=null,webCamStream=null,screenStream=null;
-			switch (videoSrc) {
-				case "no":
-							if (shareAudio=="yes") {
-								webCamStream=await getWebCamVideo();
-								mediaStream=new MediaStream();
-								webCamStream.getAudioTracks().forEach((track)=>{
-									mediaStream.addTrack(track);
-								});
-							}
-							break;
-				case "screen":
-								screenStream=await getShareDesktopVideo();
-								mediaStream=new MediaStream();
-								if (shareAudio=="yes") {
-									if (screenStream.getAudioTracks().length<1) {
-										webCamStream=await getWebCamVideo();
-										mediaStream=new MediaStream();
-										webCamStream.getAudioTracks().forEach((track)=>{
-											mediaStream.addTrack(track);
-										});
-										screenStream.getVideoTracks().forEach((track)=>{
-											mediaStream.addTrack(track);
-										});
-									} else {
-										mediaStream=screenStream.clone();	
-									}
-								} else {
-									screenStream.getVideoTracks().forEach((track)=>{
-										mediaStream.addTrack(track);
-									});	
-								}
-								break;
-				case "webCam":
-								webCamStream=await getWebCamVideo();
-								if (shareAudio=="yes") {
-									mediaStream=webCamStream.clone();
-								} else {
-									mediaStream=new MediaStream();
-									webCamStream.getVideoTracks().forEach((track)=>{
-										mediaStream.addTrack(track);
-									});	
-								}
-								break;
-			}
-			return mediaStream;
-		}	
-		async function getShareDesktopVideo(){
+		async function getShareDesktopVideo(shareAudio){
 			let stream = null;
-			stream = await navigator.mediaDevices.getDisplayMedia({"audio":true,"video":true});
+			stream = await navigator.mediaDevices.getDisplayMedia({"audio":shareAudio,"video":true});
 			return stream;
-			
 		}
-		async function getWebCamVideo() {
+		async function getWebCamVideo(shareVideo,shareAudio){
 			let stream = null;
-			stream = await navigator.mediaDevices.getUserMedia(getConstraints());
+			var config=getConstraints();
+			if (!shareAudio) {
+				delete config["audio"];
+			}
+			if (!shareVideo){
+				delete config["video"];
+			}
+			logger("LocalMedia:config="+JSON.stringify(config));
+			stream = await navigator.mediaDevices.getUserMedia(config);
 			return stream;
-		}		
+		}
 	}
 }
