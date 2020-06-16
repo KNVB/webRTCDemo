@@ -159,6 +159,7 @@
 					pc.ontrack=null;
 					pc=null;
 				}
+				polite=false;
 			}
 			function iceCandidateEventHandler(event){
 				if (event.candidate==null){
@@ -259,6 +260,7 @@
 			socket.on("receive",async (req)=>{
 				let ignoreOffer = false;
 				createConnection();
+				
 				if (req.description){
 					const offerCollision = (req.description.type == "offer") &&
 								 (makingOffer || pc.signalingState != "stable");
