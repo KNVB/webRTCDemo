@@ -160,12 +160,14 @@
 					pc=null;
 				}
 				polite=false;
+				makingOffer = false, ignoreOffer = false;
 			}
 			function iceCandidateEventHandler(event){
 				if (event.candidate==null){
 					writeLog("All ICE Candidates are sent");
 				} else {
-					writeLog("Send ICE Candidate");
+					writeLog("Send an ICE Candidate");
+					socket.emit("send",{candidate:event.candidate});
 				}
 			}
 			async function negotiationEventHandler(){
@@ -279,6 +281,7 @@
 				} else {
 					if (req.candidate){
 						try {
+							writeLog("Received an ICE Candidate:"+(pc.currentRemoteDescription==null))
 							if (pc.currentRemoteDescription){
 								await pc.addIceCandidate(req.candidate);
 							}
