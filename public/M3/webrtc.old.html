@@ -35,18 +35,20 @@
 			}
 			
 			function createConnection(){
-				pc=new RTCPeerConnection(configuration);
-				pc.onconnectionstatechange = handleConnectionStateChange;
-				pc.ondatachannel = handleDataChannelEvent;
-				pc.onicecandidate=iceCandidateEventHandler;
-				pc.oniceconnectionstatechange = handleICEConnectionStateChange;
-				pc.onicegatheringstatechange =handleICEGatheringStateChange;
-				pc.onnegotiationneeded=negotiationEventHandler;
-				pc.onsignalingstatechange=handleSignalingStateChange;
-				pc.ontrack=handleRemoteTrack;
-				
-				dataChannel= pc.createDataChannel('chat');
-				writeLog("createConnection:"+pc.currentRemoteDescription);
+				if (pc==null){
+					pc=new RTCPeerConnection(configuration);
+					pc.onconnectionstatechange = handleConnectionStateChange;
+					pc.ondatachannel = handleDataChannelEvent;
+					pc.onicecandidate=iceCandidateEventHandler;
+					pc.oniceconnectionstatechange = handleICEConnectionStateChange;
+					pc.onicegatheringstatechange =handleICEGatheringStateChange;
+					pc.onnegotiationneeded=negotiationEventHandler;
+					pc.onsignalingstatechange=handleSignalingStateChange;
+					pc.ontrack=handleRemoteTrack;
+					
+					dataChannel= pc.createDataChannel('chat');
+					writeLog("createConnection:"+pc.currentRemoteDescription);
+				}
 			}
 			function dataChannelClose() {
 				writeLog('Data channel closed');
@@ -87,12 +89,12 @@
 			function handleConnectionStateChange(event) {
 			  writeLog("pc.connectionState="+pc.connectionState);
 			  switch(pc.connectionState) {
+				case "closed":
+					hangUp();
+					break;
 				case "disconnected":
 				case "failed":
 					// One or more transports has terminated unexpectedly or in an error
-					hangUp();
-					break;
-				case "closed":
 					hangUp();
 					break;
 			  }
@@ -125,12 +127,12 @@
 			}	
 			function handleRemoteTrack(event) {
 				writeLog("Track event:"+event.track.kind); 
-				var remoteStream;
+				var remoteStream,track=event.track;
 				if (remoteVideo.srcObject==null){
 					remoteView.srcObject=new MediaStream();
 				}
 				remoteStream=remoteVideo.srcObject;
-				remoteStream.addTrack(event.track, remoteStream);
+				remoteStream.addTrack(track, remoteStream);
 			}
 			function handleSignalingStateChange(event) {
 				writeLog("pc.signalingState="+pc.signalingState);
@@ -163,7 +165,6 @@
 					writeLog("All ICE Candidates are sent");
 				} else {
 					writeLog("Send ICE Candidate");
-					socket.emit('send',{candidate:event.candidate});
 				}
 			}
 			async function negotiationEventHandler(){
@@ -195,7 +196,8 @@
 					v.srcObject=null;
 				}
 			}
-			function setupVideo(stream){
+			function setupMedia(stream){
+				/*
 				var senders=pc.getSenders();
 				senders.forEach((sender)=>{
 					if (sender.track) {
@@ -203,10 +205,35 @@
 					}
 					pc.removeTrack(sender);
 				});
-				writeLog(pc.getSenders().length);
+				//writeLog(pc.getSenders().length);
 				stream.getTracks().forEach((track)=>{
 					pc.addTrack(track,stream);
 				});
+				*/
+				var senders=pc.getSenders();
+				if (senders.length<1) {
+					stream.getTracks().forEach((track)=>{
+						pc.addTrack(track,stream);
+					});
+				} else {
+					senders.forEach((sender)=>{
+						if (sender.track)
+							sender.track.stop();
+					});
+					stream.getTracks().forEach((track)=>{
+						var sender = pc.getSenders().find(function(s) {
+							if (s.track)
+								return s.track.kind == track.kind;
+							else 
+								return null;
+						});
+						if (sender==null) {
+							pc.addTrack(track,stream);
+						} else {
+							sender.replaceTrack(track);
+						}
+					});
+				}
 				localVideo.srcObject=stream;
 			}
 			async function updateSrc(){
@@ -216,8 +243,8 @@
 				try{
 					stream=await localMedia.getStream($(videoSrc).val(),($(shareAudio).val()=="yes"));
 					if (stream) {
-						writeLog("videoSrc="+$(videoSrc).val()+",shareAudio="+$(shareAudio).val()+",count="+stream.getTracks().length);
-						setupVideo(stream);
+						//writeLog("updateSrc():videoSrc="+$(videoSrc).val()+",shareAudio="+$(shareAudio).val()+",count="+stream.getTracks().length);
+						setupMedia(stream);
 					} else {
 						closeVideoStream(localVideo);
 					}
@@ -231,8 +258,7 @@
 			}	
 			socket.on("receive",async (req)=>{
 				let ignoreOffer = false;
-				if (pc==null)
-					createConnection();
+				createConnection();
 				if (req.description){
 					const offerCollision = (req.description.type == "offer") &&
 								 (makingOffer || pc.signalingState != "stable");
