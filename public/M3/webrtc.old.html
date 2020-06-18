@@ -160,7 +160,8 @@
 					pc=null;
 				}
 				polite=false;
-				makingOffer = false, ignoreOffer = false;
+				makingOffer = false;
+				ignoreOffer = false;
 			}
 			function iceCandidateEventHandler(event){
 				if (event.candidate==null){
@@ -200,42 +201,31 @@
 				}
 			}
 			function setupMedia(stream){
-				/*
-				var senders=pc.getSenders();
-				senders.forEach((sender)=>{
-					if (sender.track) {
-						sender.track.stop();
-					}
-					pc.removeTrack(sender);
-				});
-				//writeLog(pc.getSenders().length);
-				stream.getTracks().forEach((track)=>{
-					pc.addTrack(track,stream);
-				});
-				*/
-				var senders=pc.getSenders();
-				if (senders.length<1) {
-					stream.getTracks().forEach((track)=>{
-						pc.addTrack(track,stream);
-					});
-				} else {
-					senders.forEach((sender)=>{
-						if (sender.track)
-							sender.track.stop();
-					});
-					stream.getTracks().forEach((track)=>{
-						var sender = pc.getSenders().find(function(s) {
-							if (s.track)
-								return s.track.kind == track.kind;
-							else 
-								return null;
-						});
-						if (sender==null) {
+				if (pc){
+					var senders=pc.getSenders();
+					if (senders.length<1) {
+						stream.getTracks().forEach((track)=>{
 							pc.addTrack(track,stream);
-						} else {
-							sender.replaceTrack(track);
-						}
-					});
+						});
+					} else {
+						senders.forEach((sender)=>{
+							if (sender.track)
+								sender.track.stop();
+						});
+						stream.getTracks().forEach((track)=>{
+							var sender = pc.getSenders().find(function(s) {
+								if (s.track)
+									return s.track.kind == track.kind;
+								else 
+									return null;
+							});
+							if (sender==null) {
+								pc.addTrack(track,stream);
+							} else {
+								sender.replaceTrack(track);
+							}
+						});
+					}
 				}
 				localVideo.srcObject=stream;
 			}
@@ -252,7 +242,7 @@
 						closeVideoStream(localVideo);
 					}
 				}catch (error) {
-						alert("Fail to get Media Stream:"+error+" at "+error.lineNumber);
+						writeLog("Fail to get Media Stream:"+error.message+" at "+error.lineNumber);
 				}
 			}
 			function writeLog(message) {
@@ -271,9 +261,11 @@
 					if (ignoreOffer) {
 						return;
 					}
-				
-					await pc.setRemoteDescription(req.description);
-					
+					try{
+						await pc.setRemoteDescription(req.description);
+					}catch (error){
+						writeLog("Failed to setRemoteDescription :"+error+","+JSON.stringify(req.description));
+					}
 					if (req.description.type =="offer") {
 						await pc.setLocalDescription();
 						socket.emit("send",{description: pc.localDescription});
@@ -295,9 +287,9 @@
 			});			
 		</script>
 	</head>
-	<body>
+	<body class="p-1">
 	
-		<table border=1>
+		<table border=1 class="w-100">
 			<tr>
 				<td>
 					<h1> Self View </h1>
