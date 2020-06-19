@@ -233,16 +233,12 @@
 				var shareAudio=document.getElementById("shareAudio");
 				var videoSrc=document.getElementById("videoSrc");
 				
-				try{
-					stream=await localMedia.getStream($(videoSrc).val(),($(shareAudio).val()=="yes"));
-					if (stream) {
-						//writeLog("updateSrc():videoSrc="+$(videoSrc).val()+",shareAudio="+$(shareAudio).val()+",count="+stream.getTracks().length);
-						setupMedia(stream);
-					} else {
-						closeVideoStream(localVideo);
-					}
-				}catch (error) {
-						writeLog("Fail to get Media Stream:"+error.message+" at "+error.lineNumber);
+				stream=await localMedia.getStream($(videoSrc).val(),($(shareAudio).val()=="yes"));
+				if (stream) {
+					//writeLog("updateSrc():videoSrc="+$(videoSrc).val()+",shareAudio="+$(shareAudio).val()+",count="+stream.getTracks().length);
+					setupMedia(stream);
+				} else {
+					closeVideoStream(localVideo);
 				}
 			}
 			function writeLog(message) {

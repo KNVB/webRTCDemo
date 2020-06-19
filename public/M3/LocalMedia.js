@@ -12,9 +12,11 @@ class LocalMedia{
 					if (shareAudio){
 						if (stream.getAudioTracks().length<1) {
 							var audioStream=await getWebCamVideo(false,true);
-							audioStream.getAudioTracks().forEach((track)=>{
-								stream.addTrack(track);
-							});
+							if (audioStream) {
+								audioStream.getAudioTracks().forEach((track)=>{
+									stream.addTrack(track);
+								});
+							}	
 						}
 					}
 					break;
@@ -47,8 +49,17 @@ class LocalMedia{
 		}
 		async function getShareDesktopVideo(shareAudio){
 			let stream = null;
-			stream = await navigator.mediaDevices.getDisplayMedia({"audio":shareAudio,"video":true});
-			return stream;
+			try{
+				stream = await navigator.mediaDevices.getDisplayMedia({"audio":shareAudio,"video":true});
+			}
+			catch(error){
+				logger("getShareDesktopVideo failure:"+error);
+			}				
+			finally {
+				logger("getShareDesktopVideo complete");
+				return stream
+			}	
+			
 		}
 		async function getWebCamVideo(shareVideo,shareAudio){
 			let stream = null;
@@ -60,8 +71,16 @@ class LocalMedia{
 				delete config["video"];
 			}
 			logger("LocalMedia:config="+JSON.stringify(config));
-			stream = await navigator.mediaDevices.getUserMedia(config);
-			return stream;
+			try{
+				stream = await navigator.mediaDevices.getUserMedia(config);
+			} 
+			catch(error){
+				logger("getWebCamVideo failure:"+error);
+			}				
+			finally {
+				logger("getWebCamVideo complete");
+				return stream
+			}
 		}
 	}
 }
