@@ -1,0 +1,57 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WebRTC Device List</title>
+		
+		<script>
+			var audioInputList={};
+			var audioOutputList={};
+			var videoInputList={};
+			var constraints = {audio: true,video: true};
+			navigator.mediaDevices.getUserMedia(constraints).then(gotStream).then(gotDevices).catch(handleError);
+			
+			function gotDevices(deviceList) {
+				deviceList.forEach((device)=>{
+					//console.log(device);
+					switch (device.kind){
+						case "audioinput":
+							audioInputList[device.deviceId]=device.label;
+							break;
+						case "audiooutput":
+							audioOutputList[device.deviceId]=device.label;
+							break;	
+						case "videoinput":
+							videoInputList[device.deviceId]=device.label;
+							break;					
+					}
+				});
+				
+				console.log("Audio Input List");
+				listDevice(audioInputList);
+				console.log("Audio Output List");
+				listDevice(audioOutputList);
+				console.log("Video Input List");
+				listDevice(videoInputList);
+				
+				stream.getTracks().forEach(async track=>{
+					await track.stop();
+				});
+				stream=null;
+			}
+			function gotStream(stream) {
+				window.stream = stream; // make stream available to console
+				return navigator.mediaDevices.enumerateDevices();
+			}
+			function handleError(error) {
+			  console.log('navigator.MediaDevices.getUserMedia error: ', error.message, error.name);
+			}
+			function listDevice(list){
+				Object.keys(list).forEach(key=>{
+					console.log(list[key]);
+				});
+			}
+		</script>
+	</head>
+	<body class="p-1">
+	</body>
+</html>	
