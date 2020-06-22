@@ -1,0 +1,365 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WebRTC Caller</title>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+		
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="LocalMedia.js"></script>
+		<script>
+			var peer=null;
+			var socket = io.connect();
+			var dataChannel=null,pc=null,polite=false;
+			var localMedia=new LocalMedia();
+			var localVideo,remoteVideo;
+			var myRollDiceResult=null;
+			var makingOffer = false, ignoreOffer = false;
+			var configuration = {iceServers: 
+				[{urls: "stun:stun.stunprotocol.org"},
+				 {urls: "stun:stun.l.google.com:19302"},
+				 {urls: "turn:numb.viagenie.ca", credential: "turnserver", username: "sj0016092@gmail.com"}		
+				]};
+
+			function createConnection(){
+				if (pc==null){
+					pc=new RTCPeerConnection(configuration);
+					pc.onconnectionstatechange = handleConnectionStateChange;
+					pc.ondatachannel = handleDataChannelEvent;
+					pc.onicecandidate=iceCandidateEventHandler;
+					pc.oniceconnectionstatechange = handleICEConnectionStateChange;
+					pc.onicegatheringstatechange =handleICEGatheringStateChange;
+					pc.onnegotiationneeded=negotiationEventHandler;
+					pc.onsignalingstatechange=handleSignalingStateChange;
+					pc.ontrack=handleRemoteTrack;
+					
+					dataChannel= pc.createDataChannel('chat');
+					writeLog("createConnection:"+pc.currentRemoteDescription);
+				}
+			}
+			function dataChannelClose() {
+				writeLog('Data channel closed');
+				dataChannel.onopen = null;
+				dataChannel.onmessage = null;
+				dataChannel.onclose = null;
+				dataChannel.onerror = null;
+				dataChannel = null;
+			}
+			function dataChannelError(event) {
+				writeLog('Data channel error:'+event.message);
+			}
+			function dataChannelOpen() {
+			  writeLog('data channel is opened');
+			}
+			function dataChannelMessage(message) {
+				writeLog('Received Message from Data Channel:'+message.data);
+				text = message.data;
+				chatlog(text);
+			}
+			function getConstraints() {
+				/*
+				return {"audio":true,
+				"video":true}
+				*/
+				return {
+						"audio":{
+									channelCount: 2,
+									echoCancellation:true,
+									sampleSize: 16
+								},
+						"video":{
+									width:{ min: 640, ideal: 1280, max: 1920 },
+									height:{ min: 480, ideal: 720, max: 1080 }
+								}
+						}; 
+			}
+			function handleConnectionStateChange(event) {
+			  writeLog("pc.connectionState="+pc.connectionState);
+			  switch(pc.connectionState) {
+				case "closed":
+					hangUp();
+					break;
+				case "disconnected":
+				case "failed":
+					// One or more transports has terminated unexpectedly or in an error
+					hangUp();
+					break;
+			  }
+			}
+			function handleDataChannelEvent(event){
+				writeLog('Data channel is created!');
+				event.channel.onopen = dataChannelOpen;
+				event.channel.onmessage = dataChannelMessage;
+				event.channel.onclose = dataChannelClose;
+				event.channel.onerror = dataChannelError;
+			}
+			function handleICEConnectionStateChange(event) {
+				writeLog('ice connection state: ' + pc.iceConnectionState);
+				if (pc.iceConnectionState=="failed"){
+					writeLog('Restart ICE');
+					pc.restartIce();
+				}
+				if (pc.iceConnectionState=="disconnected") {
+					hangUp();
+				}				
+				/*
+				if ((pc.iceConnectionState=="disconnected") || (pc.iceConnectionState=="failed")){
+					writeLog('Restart ICE');
+					pc.restartIce();
+				}
+				*/
+			}
+			function handleICEGatheringStateChange() {
+				writeLog("ICE Gathering State ="+pc.iceGatheringState);
+			}	
+			function handleRemoteTrack(event) {
+				writeLog("Track event:"+event.track.kind); 
+				var remoteStream,track=event.track;
+				if (remoteVideo.srcObject==null){
+					remoteView.srcObject=new MediaStream();
+				}
+				remoteStream=remoteVideo.srcObject;
+				remoteStream.addTrack(track, remoteStream);
+			}
+			function handleSignalingStateChange(event) {
+				writeLog("pc.signalingState="+pc.signalingState);
+				if(pc.signalingState=="stable"){
+					writeLog("ICE negotiation complete");
+				}
+			} 	
+			function hangUp() {
+				writeLog("Hangup");
+				closeVideoStream(localVideo);
+				closeVideoStream(remoteVideo);
+
+				if (dataChannel)
+					dataChannel.close();
+				if (pc){
+					pc.close();
+					pc.onconnectionstatechange = null;
+					pc.ondatachannel = null;
+					pc.onicecandidate=null;
+					pc.oniceconnectionstatechange = null;
+					pc.onicegatheringstatechange =null;
+					pc.onnegotiationneeded=null;
+					pc.onsignalingstatechange=null;
+					pc.ontrack=null;
+					pc=null;
+				}
+				polite=false;
+				makingOffer = false;
+				ignoreOffer = false;
+			}
+			function iceCandidateEventHandler(event){
+				if (event.candidate==null){
+					writeLog("All ICE Candidates are sent");
+				} else {
+					writeLog("Send an ICE Candidate");
+					socket.emit("send",{candidate:event.candidate});
+				}
+			}
+			async function negotiationEventHandler(){
+				writeLog('Handle Negotitation');
+				
+				try {
+					makingOffer = true;
+					await pc.setLocalDescription();
+					socket.emit("send",{ description: pc.localDescription });
+				} catch(err) {
+					writeLog(err);
+				} finally {
+					makingOffer = false;
+				}
+			}
+//============================================================================================
+			$( document ).ready(function() {
+				localVideo=document.getElementById("selfView");
+				remoteVideo=document.getElementById("remoteView");
+				localMedia.setLogger(writeLog);
+			});
+			function call(){
+				myRollDiceResult=getRandomNum();
+				socket.emit("requestRollDice",myRollDiceResult);
+			}
+			function clearLog() {
+			  chatelement = document.getElementById('logger');
+			  chatelement.innerHTML='';
+			}
+			function closeVideoStream(v){
+				writeLog("closeVideoStream:id="+v.id);
+				writeLog("closeVideoStream:v.srcObject="+v.srcObject);
+				if (v.srcObject!=null) {
+					writeLog("closeVideoStream:no. of track="+v.srcObject.getTracks().length);
+					v.srcObject.getTracks().forEach(async (track)=>{
+						await track.stop();
+					});
+					v.srcObject=null;
+				}
+			}
+			function getRandomNum(){
+				return (Math.round(Math.random() * 1000));
+			}
+			function setPolite(peerRollDiceResult) {
+				if (myRollDiceResult==peerRollDiceResult) {
+					writeLog("Because myRollDiceResult=peerRollDiceResult execute Call function again");
+					call();
+				} else{
+					if (myRollDiceResult>peerRollDiceResult) {
+						polite=false;
+					} else {
+						polite=true;
+					}
+					writeLog("myRollDiceResult="+myRollDiceResult+",peerRollDiceResult="+peerRollDiceResult+",polite="+polite);
+					createConnection();
+				}				
+			}
+			function setupMedia(stream){
+				if (pc){
+					var senders=pc.getSenders();
+					if (senders.length<1) {
+						stream.getTracks().forEach((track)=>{
+							pc.addTrack(track,stream);
+						});
+					} else {
+						senders.forEach((sender)=>{
+							if (sender.track)
+								sender.track.stop();
+						});
+						stream.getTracks().forEach((track)=>{
+							var sender = pc.getSenders().find(function(s) {
+								if (s.track)
+									return s.track.kind == track.kind;
+								else 
+									return null;
+							});
+							if (sender==null) {
+								pc.addTrack(track,stream);
+							} else {
+								sender.replaceTrack(track);
+							}
+						});
+					}
+				}
+				localVideo.srcObject=null;
+				localVideo.srcObject=stream;
+			}
+			async function updateSrc(){
+				var shareAudio=document.getElementById("shareAudio");
+				var videoSrc=document.getElementById("videoSrc");
+				
+				stream=await localMedia.getStream($(videoSrc).val(),($(shareAudio).val()=="yes"));
+				if (stream) {
+					//writeLog("updateSrc():videoSrc="+$(videoSrc).val()+",shareAudio="+$(shareAudio).val()+",count="+stream.getTracks().length);
+					setupMedia(stream);
+				} else {
+					closeVideoStream(localVideo);
+				}
+			}
+			function writeLog(message) {
+				var logger=document.getElementById("logger");
+				logger.innerHTML=message+"<br>"+logger.innerHTML;
+			}
+//===============================================================================================================================
+			socket.on("receive",async (req)=>{
+				let ignoreOffer = false;
+				createConnection();
+				
+				if (req.description){
+					const offerCollision = (req.description.type == "offer") &&
+								 (makingOffer || pc.signalingState != "stable");
+
+					ignoreOffer = !polite && offerCollision;
+					if (ignoreOffer) {
+						return;
+					}
+					try{
+						await pc.setRemoteDescription(req.description);
+					}catch (error){
+						writeLog("Failed to setRemoteDescription :"+error+","+JSON.stringify(req.description));
+					}
+					if (req.description.type =="offer") {
+						await pc.setLocalDescription();
+						socket.emit("send",{description: pc.localDescription});
+					}
+				} else {
+					if (req.candidate){
+						try {
+							writeLog("Received an ICE Candidate:"+(pc.currentRemoteDescription==null))
+							if (pc.currentRemoteDescription){
+								await pc.addIceCandidate(req.candidate);
+							}
+						} catch(err) {
+							if (!ignoreOffer) {
+							  throw err;
+							}
+						}
+					}
+				}
+			});			
+			socket.on("receiveRollDiceResult",(peerRollDiceResult)=>{
+				writeLog("receiveRollDiceResult");
+				setPolite(peerRollDiceResult);
+			});
+			
+			socket.on("requestRollDice",(peerRollDiceResult)=>{
+				writeLog("receive roll Dice");
+				myRollDiceResult=getRandomNum();
+				socket.emit("sendRollDiceResult",myRollDiceResult);
+				setPolite(peerRollDiceResult);
+			});	
+		</script>
+	</head>
+	<body>
+		<table border=1 class="w-100">
+			<tr>
+				<td>
+					<h1> Self View </h1>
+					<video id="selfView" width="320" height="240" autoplay controls muted></video>
+				</td>
+				<td>
+					<h1> Remote View </h1>
+					<video id="remoteView" width="320" height="240" autoplay controls muted></video>
+				</td>
+			</tr>
+			<tr>
+				<td colspan=2>
+					<div class="d-flex flex-row align-items-center justify-content-center">
+						<div class="btn-group-toggle d-flex justify-content-center p-1">
+							<button class="btn-sm btn btn-lg btn-success" onclick="call()">Make A Call</button>
+						</div>
+						<div class="btn-group-toggle p-1">
+							<label class="btn-sm btn btn-lg btn-success">
+								Share 
+								<select name="videoSrc" id="videoSrc" class="bg-success text-white" onchange="updateSrc()">
+									<option value="no" >No</option>
+									<option value="webCam">Web Cam</option>
+									<option value="screen">Screen</option>
+								</select>
+								Video
+							</label>
+						</div>
+						<div class="btn-group-toggle p-1">
+							<label class="btn-sm btn btn-lg btn-success">
+								Share Audio
+								<select name="shareAudio" id="shareAudio" class="bg-success text-white" onchange="updateSrc()">
+									<option value="yes">Yes</option>
+									<option value="no" >No</option>
+								</select>
+							</label>
+						</div>
+						<div class="btn-group-toggle d-flex justify-content-center p-1">
+							<button class="btn-sm btn btn-lg btn-success" onclick="hangUp()">Hangup</button>
+						</div>
+						<div class="btn-group-toggle d-flex justify-content-center p-1">
+							<button class="btn-sm btn btn-lg btn-success" onclick="clearLog()">Clear Log</button>
+						</div>
+					</div>
+				</td>
+			</tr>	
+		</table>
+		<div id="logger" style="border:1px solid black;width:100%;height:30%;overflow:scroll">
+		</div>	
+	</body>
+</html>	

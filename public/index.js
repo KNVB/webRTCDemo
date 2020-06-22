@@ -3,7 +3,7 @@ var https = require('https');
 
 var express = require('express');
 var app = express();
-/*
+
 var options = {
   key: fs.readFileSync('.well-known\\acme-challenge\\private.key'),
   ca: [fs.readFileSync('.well-known\\acme-challenge\\ca_bundle.crt')],
@@ -11,12 +11,12 @@ var options = {
 };
 var serverPort = 443;
 var server = https.createServer(options, app);
-*/
 
+/*
 var http = require('http');
 var serverPort = 24;
 server = http.createServer(app);
-
+*/
 var io = require('socket.io')(server);
 var userList=[];
 
@@ -31,6 +31,12 @@ io.on('connection', (socket) => {
 	socket.on("send",(req)=>{
 		console.log("Receive send request");
 		socket.broadcast.emit("receive", req);
+	});
+	socket.on("sendRollDiceResult",(rollDiceResult)=>{
+		socket.broadcast.emit("receiveRollDiceResult",rollDiceResult);
+	});
+	socket.on("requestRollDice",(rollDiceResult)=>{
+		socket.broadcast.emit("requestRollDice",rollDiceResult);
 	});
 	socket.on('disconnect', () => {
 		console.log('user disconnected@'+(new Date()));
