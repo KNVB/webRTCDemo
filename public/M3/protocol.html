@@ -10,18 +10,39 @@
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="LocalMedia.js"></script>
 		<script>
-			var peer=null;
-			var socket = io.connect();
-			var dataChannel=null,pc=null,polite=false;
-			var localMedia=new LocalMedia();
-			var localVideo,remoteVideo;
-			var myRollDiceResult=null;
-			var makingOffer = false, ignoreOffer = false;
 			var configuration = {iceServers: 
 				[{urls: "stun:stun.stunprotocol.org"},
 				 {urls: "stun:stun.l.google.com:19302"},
 				 {urls: "turn:numb.viagenie.ca", credential: "turnserver", username: "sj0016092@gmail.com"}		
 				]};
+			var dataChannel=null;
+			var isDisconnectByUser=false;
+			var localMedia=new LocalMedia();
+			var localVideo;
+			var makingOffer = false,myRollDiceResult=null;
+			var pc=null,peer=null,polite=false;
+			var remoteVideo;
+			var socket = io.connect();			
+			function closeConnection() {
+				closeVideoStream(localVideo);
+				closeVideoStream(remoteVideo);
+				if (dataChannel)
+					dataChannel.close();
+				if (pc){
+					pc.close();
+					pc.onconnectionstatechange = null;
+					pc.ondatachannel = null;
+					pc.onicecandidate=null;
+					pc.oniceconnectionstatechange = null;
+					pc.onicegatheringstatechange =null;
+					pc.onnegotiationneeded=null;
+					pc.onsignalingstatechange=null;
+					pc.ontrack=null;
+					pc=null;
+				}
+				polite=false;
+				makingOffer = false;
+			}
 
 			function createConnection(){
 				if (pc==null){
@@ -79,12 +100,15 @@
 			  writeLog("pc.connectionState="+pc.connectionState);
 			  switch(pc.connectionState) {
 				case "closed":
-					hangUp();
 					break;
 				case "disconnected":
+					break;
 				case "failed":
 					// One or more transports has terminated unexpectedly or in an error
-					hangUp();
+					//hangUp();
+					if (!isDisconnectByUser) {
+						pc.restartIce();
+					}
 					break;
 			  }
 			}
@@ -97,6 +121,7 @@
 			}
 			function handleICEConnectionStateChange(event) {
 				writeLog('ice connection state: ' + pc.iceConnectionState);
+				/*
 				if (pc.iceConnectionState=="failed"){
 					writeLog('Restart ICE');
 					pc.restartIce();
@@ -104,7 +129,7 @@
 				if (pc.iceConnectionState=="disconnected") {
 					hangUp();
 				}				
-				/*
+				
 				if ((pc.iceConnectionState=="disconnected") || (pc.iceConnectionState=="failed")){
 					writeLog('Restart ICE');
 					pc.restartIce();
@@ -129,29 +154,6 @@
 					writeLog("ICE negotiation complete");
 				}
 			} 	
-			function hangUp() {
-				writeLog("Hangup");
-				closeVideoStream(localVideo);
-				closeVideoStream(remoteVideo);
-
-				if (dataChannel)
-					dataChannel.close();
-				if (pc){
-					pc.close();
-					pc.onconnectionstatechange = null;
-					pc.ondatachannel = null;
-					pc.onicecandidate=null;
-					pc.oniceconnectionstatechange = null;
-					pc.onicegatheringstatechange =null;
-					pc.onnegotiationneeded=null;
-					pc.onsignalingstatechange=null;
-					pc.ontrack=null;
-					pc=null;
-				}
-				polite=false;
-				makingOffer = false;
-				ignoreOffer = false;
-			}
 			function iceCandidateEventHandler(event){
 				if (event.candidate==null){
 					writeLog("All ICE Candidates are sent");
@@ -200,6 +202,10 @@
 			}
 			function getRandomNum(){
 				return (Math.round(Math.random() * 1000));
+			}
+			function hangUp(){
+				isDisconnectByUser=true;
+				closeConnection();
 			}
 			function setPolite(peerRollDiceResult) {
 				if (myRollDiceResult==peerRollDiceResult) {
@@ -302,7 +308,9 @@
 				writeLog("receiveRollDiceResult");
 				setPolite(peerRollDiceResult);
 			});
-			
+			socket.on("reconnect",()=>{
+				writeLog("Reconnect");
+			});
 			socket.on("requestRollDice",(peerRollDiceResult)=>{
 				writeLog("receive roll Dice");
 				myRollDiceResult=getRandomNum();
@@ -311,7 +319,7 @@
 			});	
 		</script>
 	</head>
-	<body>
+	<body class="p-1">
 		<table border=1 class="w-100">
 			<tr>
 				<td>
@@ -359,7 +367,7 @@
 				</td>
 			</tr>	
 		</table>
-		<div id="logger" style="border:1px solid black;width:100%;height:30%;overflow:scroll">
+		<div id="logger" style="border:1px solid black;font-size:40px;width:100%;height:30%;overflow:scroll">
 		</div>	
 	</body>
 </html>	
