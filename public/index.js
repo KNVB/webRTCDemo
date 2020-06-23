@@ -28,6 +28,10 @@ io.on('connection', function(socket) {
 });
 io.on('connection', (socket) => {
 	console.log('a user connected@'+(new Date()));
+	socket.on("closeConnection",()=>{
+		console.log("Close connection request received");
+		socket.broadcast.emit("closeConnection", {});
+	});
 	socket.on("send",(req)=>{
 		console.log("Receive send request");
 		socket.broadcast.emit("receive", req);

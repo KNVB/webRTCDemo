@@ -16,9 +16,9 @@
 				 {urls: "turn:numb.viagenie.ca", credential: "turnserver", username: "sj0016092@gmail.com"}		
 				]};
 			var dataChannel=null;
-			var isDisconnectByUser=false;
 			var localMedia=new LocalMedia();
 			var localVideo;
+			var isDisconnectByUser=false;
 			var makingOffer = false,myRollDiceResult=null;
 			var pc=null,peer=null,polite=false;
 			var remoteVideo;
@@ -98,6 +98,7 @@
 			}
 			function handleConnectionStateChange(event) {
 			  writeLog("pc.connectionState="+pc.connectionState);
+			  /*
 			  switch(pc.connectionState) {
 				case "closed":
 					break;
@@ -106,11 +107,12 @@
 				case "failed":
 					// One or more transports has terminated unexpectedly or in an error
 					//hangUp();
+					
 					if (!isDisconnectByUser) {
 						pc.restartIce();
 					}
 					break;
-			  }
+			  }*/
 			}
 			function handleDataChannelEvent(event){
 				writeLog('Data channel is created!');
@@ -121,6 +123,9 @@
 			}
 			function handleICEConnectionStateChange(event) {
 				writeLog('ice connection state: ' + pc.iceConnectionState);
+				if ((pc.iceConnectionState=="disconnected") &&(!isDisconnectByUser)) {				
+					pc.restartIce();
+				}
 				/*
 				if (pc.iceConnectionState=="failed"){
 					writeLog('Restart ICE');
@@ -182,6 +187,7 @@
 				localMedia.setLogger(writeLog);
 			});
 			function call(){
+				isDisconnectByUser=false;
 				myRollDiceResult=getRandomNum();
 				socket.emit("requestRollDice",myRollDiceResult);
 			}
@@ -206,6 +212,7 @@
 			function hangUp(){
 				isDisconnectByUser=true;
 				closeConnection();
+				socket.emit("closeConnection",{});
 			}
 			function setPolite(peerRollDiceResult) {
 				if (myRollDiceResult==peerRollDiceResult) {
@@ -268,6 +275,10 @@
 				logger.innerHTML=message+"<br>"+logger.innerHTML;
 			}
 //===============================================================================================================================
+			socket.on("closeConnection",()=>{
+				isDisconnectByUser=true;
+				closeConnection();
+			});
 			socket.on("receive",async (req)=>{
 				let ignoreOffer = false;
 				createConnection();
@@ -307,9 +318,6 @@
 			socket.on("receiveRollDiceResult",(peerRollDiceResult)=>{
 				writeLog("receiveRollDiceResult");
 				setPolite(peerRollDiceResult);
-			});
-			socket.on("reconnect",()=>{
-				writeLog("Reconnect");
 			});
 			socket.on("requestRollDice",(peerRollDiceResult)=>{
 				writeLog("receive roll Dice");
@@ -367,7 +375,7 @@
 				</td>
 			</tr>	
 		</table>
-		<div id="logger" style="border:1px solid black;font-size:40px;width:100%;height:30%;overflow:scroll">
+		<div id="logger" style="border:1px solid black;font-size:30px;width:100%;height:30%;overflow:scroll">
 		</div>	
 	</body>
 </html>	
