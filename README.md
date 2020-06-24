@@ -1,5 +1,4 @@
-# VideoChat
-1 to 1 Video conference web app
+# Web RTC Demo
 
 System Requirement:
 * Node.js
