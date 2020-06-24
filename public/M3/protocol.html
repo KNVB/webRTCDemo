@@ -230,7 +230,7 @@
 				closeConnection();
 				socket.emit("closeConnection",{});
 			}
-			function record(){
+			function recordRemoteStream(){
 				var options = {mimeType: 'video/webm;codecs=h264'}; 
 				
 				try{
@@ -406,7 +406,7 @@
 							<button class="btn-sm btn btn-lg btn-success" onclick="clearLog()">Clear Log</button>
 						</div>
 						<div class="btn-group-toggle d-flex justify-content-center p-1">
-							<button class="btn-sm btn btn-lg btn-success" onclick="record()">Record</button>
+							<button class="btn-sm btn btn-lg btn-success" onclick="recordRemoteStream()">Record Remote Stream</button>
 						</div>
 					</div>
 				</td>
