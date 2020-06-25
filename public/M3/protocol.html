@@ -97,7 +97,10 @@
 						}; 
 			}
 			function handleConnectionStateChange(event) {
-			  writeLog("pc.connectionState="+pc.connectionState);
+				writeLog("pc.connectionState="+pc.connectionState);
+			  	if ((pc.connectionState=="disconnected") &&(!isDisconnectByUser)) {				
+					pc.restartIce();
+				}
 			  /*
 			  switch(pc.connectionState) {
 				case "closed":
@@ -123,9 +126,11 @@
 			}
 			function handleICEConnectionStateChange(event) {
 				writeLog('ice connection state: ' + pc.iceConnectionState);
+				
 				if ((pc.iceConnectionState=="disconnected") &&(!isDisconnectByUser)) {				
 					pc.restartIce();
 				}
+				
 				/*
 				if (pc.iceConnectionState=="failed"){
 					writeLog('Restart ICE');
@@ -223,9 +228,6 @@
 				return (Math.round(Math.random() * 1000));
 			}
 			function hangUp(){
-				if (recordedChunks.length>0) {
-					recordedChunks=[];
-				}
 				isDisconnectByUser=true;
 				closeConnection();
 				socket.emit("closeConnection",{});
