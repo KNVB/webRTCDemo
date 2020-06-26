@@ -26,10 +26,9 @@
 				webrtc.call();
 			}
 			function handleRemoteTrack(event){
-				writeLog("Track event:"+event.track.kind); 
 				var remoteStream,track=event.track;
 				if (remoteVideo.srcObject==null){
-					remoteView.srcObject=new MediaStream();
+					remoteView.srcObject=event.streams[0];
 				}
 				remoteStream=remoteVideo.srcObject;
 				remoteStream.addTrack(track, remoteStream);
@@ -104,8 +103,8 @@
 							<label class="btn-sm btn btn-lg btn-success">
 								Share Audio
 								<select name="shareAudio" id="shareAudio" class="bg-success text-white" onchange="updateSrc()">
-									<option value="yes">Yes</option>
 									<option value="no" >No</option>
+									<option value="yes">Yes</option>
 								</select>
 							</label>
 						</div>
