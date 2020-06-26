@@ -11,10 +11,12 @@ class WebRTC{
 		this.call=(()=>{
 			call();
 		});
-		this.hangUp=(()=>{
+		this.hangUp=((isLocalDiscReq)=>{
 			setDisconnectByUser(true);
 			closeConnection();
-			socket.emit("closeConnection",{});
+			if (isLocalDiscReq) { //if it is local disconnect request.
+				socket.emit("closeConnection",{});  //send the request to peer
+			}
 		});
 		this.setDisconnectByUser=((b)=>{
 			setDisconnectByUser(b);
@@ -144,7 +146,7 @@ class WebRTC{
 				logger("All ICE Candidates are sent");
 			} else {
 				logger("Send an ICE Candidate");
-				socket.emit("send",{candidate:event.candidate});
+				socket.emit("sendICECandidate",event.candidate);
 			}
 		}
 
@@ -179,7 +181,9 @@ class WebRTC{
 			try {
 				makingOffer = true;
 				await pc.setLocalDescription();
-				socket.emit("send",{ description: pc.localDescription });
+				if (pc.localDescription){
+					socket.emit("sendSDP",pc.localDescription);
+				}
 			} catch(err) {
 				logger(err);
 			} finally {
@@ -224,50 +228,21 @@ class WebRTC{
 //==========================================================================================================		
 		function setSocket(s){
 			socket=s;
-			socket.on("closeConnection",()=>{
-				setDisconnectByUser(true);
-				closeConnection();
-			});
-			socket.on("receive",async (req)=>{
-				ignoreOffer = false;
-				createConnection();
-				
-				if (req.description){
-					const offerCollision = (req.description.type == "offer") &&
-								 (makingOffer || pc.signalingState != "stable");
-
-					ignoreOffer = !polite && offerCollision;
-					if (ignoreOffer) {
-						return;
-					}
-					try{
-						await pc.setRemoteDescription(req.description);
+			socket.on("receiveICECandidate",async (iceCandidate)=>{
+				try {
+					logger("Received an ICE Candidate:"+(pc.currentRemoteDescription==null))
+					if (pc.currentRemoteDescription){
+						await pc.addIceCandidate(iceCandidate);
 						addAllICECandidate();
-					}catch (error){
-						logger("Failed to setRemoteDescription :"+error+","+JSON.stringify(req.description));
+					} else {
+						iceCandidateList.push(iceCandidate);
 					}
-					if (req.description.type =="offer") {
-						await pc.setLocalDescription();
-						socket.emit("send",{description: pc.localDescription});
-					}
-				} else {
-					if (req.candidate){
-						try {
-							logger("Received an ICE Candidate:"+(pc.currentRemoteDescription==null))
-							if (pc.currentRemoteDescription){
-								await pc.addIceCandidate(req.candidate);
-								addAllICECandidate();
-							} else {
-								iceCandidateList.push(req.candidate);
-							}
-						} catch(err) {
-							if (!ignoreOffer) {
-							  throw err;
-							}
-						}
+				} catch(err) {
+					if (!ignoreOffer) {
+					  throw err;
 					}
 				}
-			});			
+			});
 			socket.on("receiveRollDiceResult",(peerRollDiceResult)=>{
 				logger("receiveRollDiceResult");
 				setPolite(peerRollDiceResult);
@@ -277,6 +252,29 @@ class WebRTC{
 				myRollDiceResult=getRandomNum();
 				socket.emit("sendRollDiceResult",myRollDiceResult);
 				setPolite(peerRollDiceResult);
+			});
+			socket.on("receiveSDP",async (sdp)=>{
+				ignoreOffer = false;
+				createConnection();
+				
+				const offerCollision = (sdp.type == "offer") &&
+								 (makingOffer || pc.signalingState != "stable");
+
+				ignoreOffer = !polite && offerCollision;
+				if (ignoreOffer) {
+					return;
+				}
+				try{
+					await pc.setRemoteDescription(sdp);
+					addAllICECandidate();
+				}catch (error){
+					logger("Failed to setRemoteDescription :"+error+","+JSON.stringify(sdp));
+				}
+				if (sdp.type =="offer") {
+					await pc.setLocalDescription();
+					socket.emit("sendSDP",pc.localDescription);
+					logger("1 sendSDP "+(pc.localDescription==null));
+				}
 			});
 		}
 		function setDisconnectByUser(b){ 

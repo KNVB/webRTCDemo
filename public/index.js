@@ -3,7 +3,7 @@ var https = require('https');
 
 var express = require('express');
 var app = express();
-/*
+
 var options = {
   key: fs.readFileSync('.well-known\\acme-challenge\\private.key'),
   ca: [fs.readFileSync('.well-known\\acme-challenge\\ca_bundle.crt')],
@@ -11,12 +11,12 @@ var options = {
 };
 var serverPort = 443;
 var server = https.createServer(options, app);
-*/
 
+/*
 var http = require('http');
 var serverPort = 24;
 server = http.createServer(app);
-
+*/
 var io = require('socket.io')(server);
 var userList=[];
 
@@ -32,12 +32,16 @@ io.on('connection', (socket) => {
 		console.log("Close connection request received");
 		socket.broadcast.emit("closeConnection", {});
 	});
-	socket.on("send",(req)=>{
-		console.log("Receive send request");
-		socket.broadcast.emit("receive", req);
+	socket.on("sendICECandidate",(req)=>{
+		console.log("Receive an send ICE Candidate request");
+		socket.broadcast.emit("receiveICECandidate", req);
 	});
 	socket.on("sendRollDiceResult",(rollDiceResult)=>{
 		socket.broadcast.emit("receiveRollDiceResult",rollDiceResult);
+	});
+	socket.on("sendSDP",(sdp)=>{
+		console.log("Receive an send description request,"+(sdp==null));
+		socket.broadcast.emit("receiveSDP", sdp);
 	});
 	socket.on("requestRollDice",(rollDiceResult)=>{
 		socket.broadcast.emit("requestRollDice",rollDiceResult);
