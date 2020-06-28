@@ -7,7 +7,7 @@ class WebRTC{
 				]};
 		var dataChannel=null,iceCandidateList=[], ignoreOffer = false,isDisconnectByUser=false;
 		var logger, makingOffer = false,myRollDiceResult=null;
-		var pc=null,polite=false,trackEventHandler,socket;
+		var pc=null,polite=false,trackEventHandler,socket,statsID=null;
 		this.call=(()=>{
 			call();
 		});
@@ -16,6 +16,9 @@ class WebRTC{
 			closeConnection();
 			if (isLocalDiscReq) { //if it is local disconnect request.
 				socket.emit("closeConnection",{});  //send the request to peer
+			}
+			if (statsID!=null) {
+				clearInterval(statsID);
 			}
 		});
 		this.setDisconnectByUser=((b)=>{
@@ -35,6 +38,7 @@ class WebRTC{
 				var senders=pc.getSenders();
 				if (senders.length<1) {
 					stream.getTracks().forEach((track)=>{
+						logger("0 add "+track.kind+" track");
 						pc.addTrack(track,stream);
 					});
 				} else {
@@ -50,8 +54,10 @@ class WebRTC{
 								return null;
 						});
 						if (sender==null) {
+							logger("1 add "+track.kind+" track");
 							pc.addTrack(track,stream);
 						} else {
+							logger("0 replace "+track.kind+" track");
 							sender.replaceTrack(track);
 						}
 					});
@@ -92,6 +98,34 @@ class WebRTC{
 				dataChannel= pc.createDataChannel('chat');
 				logger("createConnection:"+pc.currentRemoteDescription);
 			}
+			
+			if (statsID==null){
+				/*
+				statsID=window.setInterval(function() {
+				  pc.getStats(null).then(stats => {
+					let statsOutput = "--------------------------------------------------------------------";
+
+					stats.forEach(report => {
+					  statsOutput += `<h2>Report: ${report.type}</h3>\n<strong>ID:</strong> ${report.id}<br>\n` +
+									 `<strong>Timestamp:</strong> ${report.timestamp}<br>\n`;
+					  
+					  // Now the statistics for this report; we intentially drop the ones we
+					  // sorted to the top above
+
+					  Object.keys(report).forEach(statName => {
+						if (statName !== "id" && statName !== "timestamp" && statName !== "type") {
+						  statsOutput += `<strong>${statName}:</strong> ${report[statName]}<br>\n`;
+						}
+					  });
+					  statsOutput+= "======================================================";
+					  
+					});
+
+					logger(statsOutput);
+				  });
+				}, 10000);
+				*/
+			}
 			iceCandidateList=[];
 		}
 		function dataChannelClose() {
@@ -116,6 +150,7 @@ class WebRTC{
 		function connectionStateChangeHandler(event) {
 			logger("pc.connectionState="+pc.connectionState);
 			if ((pc.connectionState=="disconnected") &&(!isDisconnectByUser)) {				
+				writeLog('Connection state change:Restart ICE');
 				pc.restartIce();
 			}
 		  /*
@@ -154,6 +189,7 @@ class WebRTC{
 			logger('ice connection state: ' + pc.iceConnectionState);
 			
 			if ((pc.iceConnectionState=="disconnected") &&(!isDisconnectByUser)) {				
+				writeLog('ICE state change:Restart ICE');
 				pc.restartIce();
 			}
 			

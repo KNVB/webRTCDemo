@@ -56,6 +56,13 @@ class Media{
 			}
 			return stream;
 		});
+		this.handleRemoteTrack=((event,remoteVideo)=>{
+			if (remoteVideo.srcObject==null){
+				remoteView.srcObject=event.streams[0];
+			} else {
+				remoteVideo.srcObject.addTrack(event.track);
+			}			
+		});
 		this.hasRecordedMedia=(()=>{
 			return hasRecordedMedia();
 		});

@@ -26,12 +26,7 @@
 				webrtc.call();
 			}
 			function handleRemoteTrack(event){
-				var remoteStream,track=event.track;
-				if (remoteVideo.srcObject==null){
-					remoteView.srcObject=event.streams[0];
-				}
-				remoteStream=remoteVideo.srcObject;
-				remoteStream.addTrack(track, remoteStream);
+				media.handleRemoteTrack(event,remoteVideo);
 			}
 			function hangUp(isLocalDiscReq){
 				webrtc.hangUp(isLocalDiscReq);
@@ -127,6 +122,8 @@
 		</table>
 		<br>
 		<div id="logger" class="border border-primary w-100 h-25 overflow-auto h3">
+		</div>
+		<div class="border border-primary w-100 h-25 overflow-auto h3 stats-box">
 		</div>
 	</body>
 </html>	

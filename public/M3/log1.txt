@@ -1,0 +1,82 @@
+Data channel closed
+Data channel error:undefined
+closeVideoStream:v.srcObject=null
+closeVideoStream:id=remoteView
+closeVideoStream:no. of track=2
+closeVideoStream:v.srcObject=[object MediaStream]
+closeVideoStream:id=selfView
+Received an ICE Candidate:false
+Received an ICE Candidate:false
+Received an ICE Candidate:false
+Received an ICE Candidate:false
+All ICE Candidates are sent
+ICE Gathering State =complete
+Received an ICE Candidate:false
+Received an ICE Candidate:false
+Received an ICE Candidate:false
+Connection state change:Restart ICE
+pc.connectionState=disconnected
+Received an ICE Candidate:false
+pc.connectionState=failed
+Send an ICE Candidate
+Send an ICE Candidate
+Send an ICE Candidate
+Send an ICE Candidate
+ICE Gathering State =gathering
+pc.signalingState=have-local-offer
+Connection state change:Restart ICE
+pc.connectionState=disconnected
+Handle Negotitation
+ICE state change:Restart ICE
+ice connection state: disconnected
+All ICE Candidates are sent
+ICE Gathering State =complete
+pc.connectionState=connected
+ICE negotiation complete
+pc.signalingState=stable
+ice connection state: connected
+Send an ICE Candidate
+Send an ICE Candidate
+Send an ICE Candidate
+ICE Gathering State =gathering
+pc.connectionState=connecting
+pc.signalingState=have-local-offer
+ice connection state: checking
+Handle Negotitation
+getShareDesktopVideo complete
+All ICE Candidates are sent
+ICE Gathering State =complete
+pc.connectionState=connected
+ICE negotiation complete
+pc.signalingState=stable
+ice connection state: connected
+Send an ICE Candidate
+Send an ICE Candidate
+Send an ICE Candidate
+ICE Gathering State =gathering
+pc.connectionState=connecting
+pc.signalingState=have-local-offer
+ice connection state: checking
+Handle Negotitation
+getShareDesktopVideo complete
+data channel is opened
+Data channel is created!
+pc.connectionState=connected
+ice connection state: connected
+All ICE Candidates are sent
+ICE Gathering State =complete
+Send an ICE Candidate
+Received an ICE Candidate:false
+pc.connectionState=connecting
+ice connection state: checking
+Received an ICE Candidate:false
+ICE negotiation complete
+pc.signalingState=stable
+Send an ICE Candidate
+Send an ICE Candidate
+ICE Gathering State =gathering
+pc.signalingState=have-local-offer
+Handle Negotitation
+createConnection:null
+myRollDiceResult=553,peerRollDiceResult=55,polite=false
+receiveRollDiceResult
