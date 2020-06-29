@@ -14,21 +14,7 @@ class Media{
 					v.srcObject=null;
 				}
 		});
-		this.getRecordedMedia=(()=>{
-			if (hasRecordedMedia()){
-				var blob = new Blob(recordedChunks, {
-					type: "video/mp4"
-				  });
-				var url = URL.createObjectURL(blob);
-				var a = document.createElement("a");
-				document.body.appendChild(a);
-				a.style = "display: none";
-				a.href = url;
-				a.download = "test.mp4";
-				a.click();
-				window.URL.revokeObjectURL(url);
-			}
-		});
+		
 		
 		this.getStream=(async (videoSrc,shareAudio)=>{
 			var stream=null;
@@ -75,10 +61,12 @@ class Media{
 				mediaRecorder = new MediaRecorder(mediaObj.srcObject);
 				recordedChunks=[];
 				mediaRecorder.ondataavailable = ((event)=>{
+					logger("ondataavailable event:"+event.data.size);
 					if (event.data.size > 0) {
 						recordedChunks.push(event.data);
 					}
 				});
+				mediaRecorder.onstop=getRecordedMedia;
 				mediaRecorder.start();
 				logger("MediaRecorder is started");
 			} catch (error){
@@ -86,12 +74,31 @@ class Media{
 			}
 		});
 		this.stopRecord=(()=>{
-			if (mediaRecorder != null) {
-				mediaRecorder.stop();
-				mediaRecorder = null;
+			if (mediaRecorder != null){
+				switch (mediaRecorder.state) {
+					case "paused":
+					case "recording":
+						mediaRecorder.stop();
+						logger("MediaRecorder is stopped");
+						break;
+				}
 			}	
 		});
 //===================================================================================================		
+		function getRecordedMedia(){
+			logger("recordedChunks size="+recordedChunks[0].size);
+			var blob = new Blob(recordedChunks, {
+				type: "video/mp4"
+			  });
+			var url = URL.createObjectURL(blob);
+			var a = document.createElement("a");
+			document.body.appendChild(a);
+			a.style = "display: none";
+			a.href = url;
+			a.download = "test.mp4";
+			a.click();
+			window.URL.revokeObjectURL(url);
+		};
 		function getConstraints() {
 			/*
 			return {"audio":true,
@@ -148,6 +155,7 @@ class Media{
 			if (mediaRecorder == null) {
 				return false;
 			} else {
+				logger("Media Recorder state="+mediaRecorder.state);
 				switch (mediaRecorder.state){
 					case "paused":
 					case "recording":

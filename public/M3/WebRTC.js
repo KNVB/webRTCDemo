@@ -148,10 +148,12 @@ class WebRTC{
 			chatlog(text);
 		}
 		function connectionStateChangeHandler(event) {
-			logger("pc.connectionState="+pc.connectionState);
-			if ((pc.connectionState=="disconnected") &&(!isDisconnectByUser)) {				
-				writeLog('Connection state change:Restart ICE');
-				pc.restartIce();
+			logger("pc.connectionState="+pc.connectionState+","+isDisconnectByUser);
+			if ((pc.connectionState=="failed") &&(!isDisconnectByUser)) {				
+				if (polite) {
+					call();
+					logger("Making call again");
+				}
 			}
 		  /*
 		  switch(pc.connectionState) {

@@ -30,12 +30,11 @@
 			}
 			function hangUp(isLocalDiscReq){
 				webrtc.hangUp(isLocalDiscReq);
-				media.closeVideoStream(localVideo);
-				media.closeVideoStream(remoteVideo);
 				if (media.hasRecordedMedia()){
-					media.stopRecord();
-					media.getRecordedMedia();
+					media.stopRecord();  //<=It will trigger the download video event.
 				}	
+				media.closeVideoStream(remoteVideo);
+				media.closeVideoStream(localVideo);
 			}
 			function recordRemoteStream(){
 				media.startRecord(remoteVideo);
