@@ -22,35 +22,41 @@ var userList=[];
 
 app.use(express.static('public'));
 io.on('connection', function(socket) {
-  console.log('new connection');
+  console.log('new connection@'+getTimeString());
   userList.push(socket.id);	
   socket.emit('message', 'This is a message from the dark side.');
 });
 io.on('connection', (socket) => {
-	console.log('a user connected@'+(new Date()));
+	console.log('a user connected@'+getTimeString());
 	socket.on("closeConnection",()=>{
-		console.log("Close connection request received");
+		console.log("Close connection request received@"+getTimeString());
 		socket.broadcast.emit("closeConnection", {});
 	});
 	socket.on("sendICECandidate",(req)=>{
-		console.log("Receive an send ICE Candidate request");
+		console.log("Receive an send ICE Candidate request@"+getTimeString());
 		socket.broadcast.emit("receiveICECandidate", req);
 	});
 	socket.on("sendRollDiceResult",(rollDiceResult)=>{
 		socket.broadcast.emit("receiveRollDiceResult",rollDiceResult);
 	});
 	socket.on("sendSDP",(sdp)=>{
-		console.log("Receive an send description request,"+(sdp==null));
+		console.log("Receive an send description request@"+getTimeString());
 		socket.broadcast.emit("receiveSDP", sdp);
 	});
 	socket.on("requestRollDice",(rollDiceResult)=>{
 		socket.broadcast.emit("requestRollDice",rollDiceResult);
 	});
 	socket.on('disconnect', () => {
-		console.log('user disconnected@'+(new Date()));
+		console.log('user disconnected@'+getTimeString());
 	});
 });
 
 server.listen(serverPort, function() {
   console.log('server up and running at %s port', serverPort);
 });
+
+function getTimeString(){
+	var date=new Date();
+	var result=date.getHours()+":"+date.getMinutes() +":"+date.getSeconds()+"."+date.getMilliseconds();
+	return result;
+}

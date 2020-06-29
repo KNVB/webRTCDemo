@@ -17,9 +17,10 @@ class WebRTC{
 			if (isLocalDiscReq) { //if it is local disconnect request.
 				socket.emit("closeConnection",{});  //send the request to peer
 			}
+			/*
 			if (statsID!=null) {
 				clearInterval(statsID);
-			}
+			}*/
 		});
 		this.setDisconnectByUser=((b)=>{
 			setDisconnectByUser(b);
@@ -82,6 +83,30 @@ class WebRTC{
 			}
 			polite=false;
 			makingOffer = false;
+		}
+		function connectionStateChangeHandler(event) {
+			logger("pc.connectionState="+pc.connectionState+","+isDisconnectByUser);
+			switch(pc.connectionState) {
+				case "closed":
+					break;
+				case "disconnected":
+					pc.close();
+					break;
+				case "failed":
+					// One or more transports has terminated unexpectedly or in an error
+					//hangUp();
+					
+					if (isDisconnectByUser) {
+						hangUp();
+					} else {
+						pc=null;
+						if (polite) {
+							call();
+							logger("Making call again");
+						}
+					}
+					break;
+			}
 		}
 		function createConnection(){
 			if (pc==null){
@@ -146,30 +171,6 @@ class WebRTC{
 			logger('Received Message from Data Channel:'+message.data);
 			text = message.data;
 			chatlog(text);
-		}
-		function connectionStateChangeHandler(event) {
-			logger("pc.connectionState="+pc.connectionState+","+isDisconnectByUser);
-			if ((pc.connectionState=="failed") &&(!isDisconnectByUser)) {				
-				if (polite) {
-					call();
-					logger("Making call again");
-				}
-			}
-		  /*
-		  switch(pc.connectionState) {
-			case "closed":
-				break;
-			case "disconnected":
-				break;
-			case "failed":
-				// One or more transports has terminated unexpectedly or in an error
-				//hangUp();
-				
-				if (!isDisconnectByUser) {
-					pc.restartIce();
-				}
-				break;
-		  }*/
 		}
 		function dataChannelEventHandler(event){
 			logger('Data channel is created!');
@@ -292,9 +293,9 @@ class WebRTC{
 				setPolite(peerRollDiceResult);
 			});
 			socket.on("receiveSDP",async (sdp)=>{
+				logger("receive SDP");
 				ignoreOffer = false;
 				createConnection();
-				
 				const offerCollision = (sdp.type == "offer") &&
 								 (makingOffer || pc.signalingState != "stable");
 
