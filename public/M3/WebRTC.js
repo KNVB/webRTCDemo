@@ -17,6 +17,7 @@ class WebRTC{
 			if (isLocalDiscReq) { //if it is local disconnect request.
 				socket.emit("closeConnection",{});  //send the request to peer
 			}
+			iceCandidateList=[];
 			/*
 			if (statsID!=null) {
 				clearInterval(statsID);
@@ -84,8 +85,13 @@ class WebRTC{
 			polite=false;
 			makingOffer = false;
 		}
+		/**
+		* The follow code work on chrome only;
+		* firefox does not support RTCPeerConnection.connectionState attribute 
+		**/
 		function connectionStateChangeHandler(event) {
 			logger("pc.connectionState="+pc.connectionState+","+isDisconnectByUser);
+			/*
 			switch(pc.connectionState) {
 				case "closed":
 					break;
@@ -106,7 +112,7 @@ class WebRTC{
 						}
 					}
 					break;
-			}
+			}*/
 		}
 		function createConnection(){
 			if (pc==null){
@@ -191,11 +197,25 @@ class WebRTC{
 		function iceConnectionStateChangeHandler(event) {
 			logger('ice connection state: ' + pc.iceConnectionState);
 			
-			if ((pc.iceConnectionState=="disconnected") &&(!isDisconnectByUser)) {				
-				writeLog('ICE state change:Restart ICE');
-				pc.restartIce();
+			switch (pc.iceConnectionState){
+				case "disconnected":
+					if (!isDisconnectByUser){
+						if (polite){
+							writeLog('ICE state change:Restart ICE');
+							pc.restartIce();
+						}
+					}
+					break;
 			}
-			
+			/*
+			if ((pc.iceConnectionState=="disconnected") &&(!isDisconnectByUser)) {				
+				
+				if (polite){
+					writeLog('ICE state change:Restart ICE');
+					pc.restartIce();
+				}
+			}
+			*/
 			/*
 			if (pc.iceConnectionState=="failed"){
 				logger('Restart ICE');
@@ -212,10 +232,10 @@ class WebRTC{
 			*/
 		}
 		function iceGatheringStateChangeHandler() {
-			logger("ICE Gathering State ="+pc.iceGatheringState);
+			logger("ICE Gathering State ="+pc.iceGatheringState+",pc.iceConnectionState="+pc.iceConnectionState);
 		}
 		async function negotiationEventHandler(){
-			logger('Handle Negotitation');
+			logger('Handle Negotiation');
 			
 			try {
 				makingOffer = true;
@@ -231,8 +251,10 @@ class WebRTC{
 		}
 		function signalingStateChangeHandler(event) {
 			logger("pc.signalingState="+pc.signalingState);
-			if(pc.signalingState=="stable"){
-				logger("ICE negotiation complete");
+			switch (pc.signalingState){
+				case "stable":
+					logger("ICE negotiation complete");
+					break;
 			}
 		}
 //==========================================================================================================				
@@ -286,6 +308,12 @@ class WebRTC{
 				logger("receiveRollDiceResult");
 				setPolite(peerRollDiceResult);
 			});
+			socket.on("reconnect",()=>{
+				if (pc==null)
+					logger("Reconnect");
+				else
+					logger("Reconnect pc.iceGatheringState="+pc.iceGatheringState+",pc.iceConnectionState="+pc.iceConnectionState);
+			});
 			socket.on("requestRollDice",(peerRollDiceResult)=>{
 				logger("receive roll Dice");
 				myRollDiceResult=getRandomNum();
@@ -295,11 +323,12 @@ class WebRTC{
 			socket.on("receiveSDP",async (sdp)=>{
 				logger("receive SDP");
 				ignoreOffer = false;
-				createConnection();
+				//createConnection();
 				const offerCollision = (sdp.type == "offer") &&
 								 (makingOffer || pc.signalingState != "stable");
 
 				ignoreOffer = !polite && offerCollision;
+				logger("ignoreOffer="+ignoreOffer+",makingOffer="+makingOffer+",offerCollision="+offerCollision+",pc.signalingState="+pc.signalingState+",polite="+polite+",sdp.type="+sdp.type);
 				if (ignoreOffer) {
 					return;
 				}
@@ -310,9 +339,13 @@ class WebRTC{
 					logger("Failed to setRemoteDescription :"+error+","+JSON.stringify(sdp));
 				}
 				if (sdp.type =="offer") {
-					await pc.setLocalDescription();
-					socket.emit("sendSDP",pc.localDescription);
-					logger("1 sendSDP "+(pc.localDescription==null));
+					try{
+						await pc.setLocalDescription();
+						socket.emit("sendSDP",pc.localDescription);
+						logger("1 sendSDP "+(pc.localDescription==null));
+					}catch(error){
+						logger("Failed to setLocalDescription :"+error);
+					}
 				}
 			});
 		}
