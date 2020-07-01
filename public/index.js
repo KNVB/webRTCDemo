@@ -32,6 +32,9 @@ io.on('connection', (socket) => {
 		console.log("Close connection request received@"+getTimeString());
 		socket.broadcast.emit("closeConnection", {});
 	});
+	socket.on("send",(req)=>{
+		socket.broadcast.emit("receive", req);
+	});
 	socket.on("sendICECandidate",(req)=>{
 		console.log("Receive an send ICE Candidate request@"+getTimeString());
 		socket.broadcast.emit("receiveICECandidate", req);

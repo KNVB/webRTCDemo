@@ -115,7 +115,7 @@ class WebRTC{
 			}*/
 		}
 		function createConnection(){
-			if (pc==null){
+			//if (pc==null){
 				pc=new RTCPeerConnection(configuration);
 				pc.onconnectionstatechange = connectionStateChangeHandler;
 				pc.ondatachannel = dataChannelEventHandler;
@@ -128,7 +128,7 @@ class WebRTC{
 				
 				dataChannel= pc.createDataChannel('chat');
 				logger("createConnection:"+pc.currentRemoteDescription);
-			}
+			//}
 			
 			if (statsID==null){
 				/*
@@ -195,15 +195,18 @@ class WebRTC{
 		}
 
 		function iceConnectionStateChangeHandler(event) {
-			logger('ice connection state: ' + pc.iceConnectionState);
+			logger('ice connection state: ' + pc.iceConnectionState+",pc.iceGatheringState="+pc.iceGatheringState);
 			
 			switch (pc.iceConnectionState){
+				case "connected":
+					logger("dataChannel.readyState="+((dataChannel)?dataChannel.readyState:"null"));
+					logger("dataChannel.negotiated="+((dataChannel)?dataChannel.negotiated:"null"));
+					break;
 				case "disconnected":
+				case "failed":
 					if (!isDisconnectByUser){
-						if (polite){
-							writeLog('ICE state change:Restart ICE');
-							pc.restartIce();
-						}
+						logger('ICE state change:Restart ICE');
+						pc.restartIce();
 					}
 					break;
 			}
@@ -240,7 +243,9 @@ class WebRTC{
 			try {
 				makingOffer = true;
 				await pc.setLocalDescription();
+				
 				if (pc.localDescription){
+					logger("0:ignoreOffer="+ignoreOffer+",makingOffer="+makingOffer+",pc.iceConnectionState="+pc.iceConnectionState+",pc.signalingState="+pc.signalingState+",polite="+polite);
 					socket.emit("sendSDP",pc.localDescription);
 				}
 			} catch(err) {
@@ -309,10 +314,16 @@ class WebRTC{
 				setPolite(peerRollDiceResult);
 			});
 			socket.on("reconnect",()=>{
-				if (pc==null)
+				if (pc==null){
 					logger("Reconnect");
-				else
+				}else{
 					logger("Reconnect pc.iceGatheringState="+pc.iceGatheringState+",pc.iceConnectionState="+pc.iceConnectionState);
+					/*
+					if ((pc.iceGatheringState=="complete") && (pc.iceConnectionState=="disconnected")){
+						closeConnection();
+						call();
+					}*/
+				}
 			});
 			socket.on("requestRollDice",(peerRollDiceResult)=>{
 				logger("receive roll Dice");
@@ -323,12 +334,12 @@ class WebRTC{
 			socket.on("receiveSDP",async (sdp)=>{
 				logger("receive SDP");
 				ignoreOffer = false;
-				//createConnection();
 				const offerCollision = (sdp.type == "offer") &&
 								 (makingOffer || pc.signalingState != "stable");
+				
 
 				ignoreOffer = !polite && offerCollision;
-				logger("ignoreOffer="+ignoreOffer+",makingOffer="+makingOffer+",offerCollision="+offerCollision+",pc.signalingState="+pc.signalingState+",polite="+polite+",sdp.type="+sdp.type);
+				logger("1:ignoreOffer="+ignoreOffer+",makingOffer="+makingOffer+",offerCollision="+offerCollision+",pc.iceConnectionState="+pc.iceConnectionState+",pc.signalingState="+pc.signalingState+",polite="+polite+",sdp.type="+sdp.type);
 				if (ignoreOffer) {
 					return;
 				}

@@ -319,18 +319,19 @@
 			});
 			socket.on("receive",async (req)=>{
 				let ignoreOffer = false;
-				createConnection();
-				
+								
 				if (req.description){
 					const offerCollision = (req.description.type == "offer") &&
 								 (makingOffer || pc.signalingState != "stable");
 
 					ignoreOffer = !polite && offerCollision;
+					writeLog("ignoreOffer="+ignoreOffer+",makingOffer="+makingOffer+",offerCollision="+offerCollision+",pc.signalingState="+pc.signalingState+",polite="+polite+",req.description.type="+req.description.type);
 					if (ignoreOffer) {
 						return;
 					}
 					try{
 						await pc.setRemoteDescription(req.description);
+						writeLog("pc.setRemoteDescription success.");
 					}catch (error){
 						writeLog("Failed to setRemoteDescription :"+error+","+JSON.stringify(req.description));
 					}
