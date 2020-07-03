@@ -7,7 +7,7 @@ class WebRTC{
 				]};
 		var dataChannel=null,iceCandidateList=[], ignoreOffer = false,isDisconnectByUser=false;
 		var logger, makingOffer = false,myRollDiceResult=null;
-		var pc=null,polite=false,trackEventHandler,socket,statsID=null;
+		var pc=null,polite=false,prePolite=null,trackEventHandler,socket,statsID=null;
 		this.call=(()=>{
 			call();
 		});
@@ -196,9 +196,14 @@ class WebRTC{
 
 		function iceConnectionStateChangeHandler(event) {
 			logger('ice connection state: ' + pc.iceConnectionState+",pc.iceGatheringState="+pc.iceGatheringState);
-			
+			if ((pc.iceConnectionState === "disconnected") ||(pc.iceConnectionState==="failed")) {
+				logger('0: Restart ICE');
+				pc.restartIce();
+			}
+			/*
 			switch (pc.iceConnectionState){
 				case "connected":
+					prePolite=null;
 					logger("dataChannel.readyState="+((dataChannel)?dataChannel.readyState:"null"));
 					logger("dataChannel.negotiated="+((dataChannel)?dataChannel.negotiated:"null"));
 					break;
@@ -210,6 +215,7 @@ class WebRTC{
 					}
 					break;
 			}
+			*/
 			/*
 			if ((pc.iceConnectionState=="disconnected") &&(!isDisconnectByUser)) {				
 				
@@ -318,10 +324,18 @@ class WebRTC{
 					logger("Reconnect");
 				}else{
 					logger("Reconnect pc.iceGatheringState="+pc.iceGatheringState+",pc.iceConnectionState="+pc.iceConnectionState);
+					if ((pc.iceGatheringState==="complete") && (pc.iceConnectionState==="failed")){
+							logger('1: Restart ICE');
+							pc.restartIce();
+					}
 					/*
+					if (prePolite==null) {
+						prePolite=polite;
+					}
 					if ((pc.iceGatheringState=="complete") && (pc.iceConnectionState=="disconnected")){
 						closeConnection();
-						call();
+						if (prePolite)
+							call();
 					}*/
 				}
 			});
