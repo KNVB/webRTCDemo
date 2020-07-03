@@ -199,6 +199,11 @@ class WebRTC{
 			if ((pc.iceConnectionState === "disconnected") ||(pc.iceConnectionState==="failed")) {
 				logger('0: Restart ICE');
 				pc.restartIce();
+			}else {
+				if (pc.iceConnectionState === "connected") {
+					logger("0 dataChannel.readyState="+((dataChannel)?dataChannel.readyState:"null"));
+					logger("0 dataChannel.negotiated="+((dataChannel)?dataChannel.negotiated:"null"));
+				}
 			}
 			/*
 			switch (pc.iceConnectionState){
@@ -324,9 +329,14 @@ class WebRTC{
 					logger("Reconnect");
 				}else{
 					logger("Reconnect pc.iceGatheringState="+pc.iceGatheringState+",pc.iceConnectionState="+pc.iceConnectionState);
-					if ((pc.iceGatheringState==="complete") && (pc.iceConnectionState==="failed")){
+					if ((pc.iceGatheringState==="complete") && 
+						((pc.iceConnectionState=="disconnected")||
+						(pc.iceConnectionState==="failed"))){
 							logger('1: Restart ICE');
 							pc.restartIce();
+					} else {
+						logger("1 dataChannel.readyState="+((dataChannel)?dataChannel.readyState:"null"));
+						logger("1 dataChannel.negotiated="+((dataChannel)?dataChannel.negotiated:"null"));
 					}
 					/*
 					if (prePolite==null) {
@@ -353,7 +363,11 @@ class WebRTC{
 				
 
 				ignoreOffer = !polite && offerCollision;
-				logger("1:ignoreOffer="+ignoreOffer+",makingOffer="+makingOffer+",offerCollision="+offerCollision+",pc.iceConnectionState="+pc.iceConnectionState+",pc.signalingState="+pc.signalingState+",polite="+polite+",sdp.type="+sdp.type);
+				if (pc){
+					logger("1:ignoreOffer="+ignoreOffer+",makingOffer="+makingOffer+",offerCollision="+offerCollision+",pc.iceConnectionState="+pc.iceConnectionState+",pc.signalingState="+pc.signalingState+",polite="+polite+",sdp.type="+sdp.type);
+				}else{ 
+					logger("pc=null");
+				}
 				if (ignoreOffer) {
 					return;
 				}
