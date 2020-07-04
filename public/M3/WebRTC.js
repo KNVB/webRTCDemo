@@ -91,6 +91,10 @@ class WebRTC{
 		**/
 		function connectionStateChangeHandler(event) {
 			logger("pc.connectionState="+pc.connectionState+","+isDisconnectByUser);
+			if (pc.connectionState==="failed") {
+				logger('-1: Restart ICE');
+				pc.restartIce();
+			}
 			/*
 			switch(pc.connectionState) {
 				case "closed":
@@ -161,11 +165,13 @@ class WebRTC{
 		}
 		function dataChannelClose() {
 			logger('Data channel closed');
-			dataChannel.onopen = null;
-			dataChannel.onmessage = null;
-			dataChannel.onclose = null;
-			dataChannel.onerror = null;
-			dataChannel = null;
+			if (isDisconnectByUser){
+				dataChannel.onopen = null;
+				dataChannel.onmessage = null;
+				dataChannel.onclose = null;
+				dataChannel.onerror = null;
+				dataChannel = null;
+			}
 		}
 		function dataChannelError(event) {
 			logger('Data channel error:'+event.message);
@@ -196,57 +202,26 @@ class WebRTC{
 
 		function iceConnectionStateChangeHandler(event) {
 			logger('ice connection state: ' + pc.iceConnectionState+",pc.iceGatheringState="+pc.iceGatheringState);
-			if ((pc.iceConnectionState === "disconnected") ||(pc.iceConnectionState==="failed")) {
+			//if ((pc.iceConnectionState === "disconnected") ||(pc.iceConnectionState==="failed")) {
+			if (pc.iceConnectionState==="failed") {	
 				logger('0: Restart ICE');
 				pc.restartIce();
 			}else {
-				if (pc.iceConnectionState === "connected") {
+				if ((pc.iceConnectionState === "connected") && (dataChannel.readyState==="closed")){
+					dataChannel= pc.createDataChannel('chat');
+					/*
 					logger("0 dataChannel.readyState="+((dataChannel)?dataChannel.readyState:"null"));
 					logger("0 dataChannel.negotiated="+((dataChannel)?dataChannel.negotiated:"null"));
+					*/
 				}
 			}
-			/*
-			switch (pc.iceConnectionState){
-				case "connected":
-					prePolite=null;
-					logger("dataChannel.readyState="+((dataChannel)?dataChannel.readyState:"null"));
-					logger("dataChannel.negotiated="+((dataChannel)?dataChannel.negotiated:"null"));
-					break;
-				case "disconnected":
-				case "failed":
-					if (!isDisconnectByUser){
-						logger('ICE state change:Restart ICE');
-						pc.restartIce();
-					}
-					break;
-			}
-			*/
-			/*
-			if ((pc.iceConnectionState=="disconnected") &&(!isDisconnectByUser)) {				
-				
-				if (polite){
-					writeLog('ICE state change:Restart ICE');
-					pc.restartIce();
-				}
-			}
-			*/
-			/*
-			if (pc.iceConnectionState=="failed"){
-				logger('Restart ICE');
-				pc.restartIce();
-			}
-			if (pc.iceConnectionState=="disconnected") {
-				hangUp();
-			}				
-			
-			if ((pc.iceConnectionState=="disconnected") || (pc.iceConnectionState=="failed")){
-				logger('Restart ICE');
-				pc.restartIce();
-			}
-			*/
 		}
 		function iceGatheringStateChangeHandler() {
 			logger("ICE Gathering State ="+pc.iceGatheringState+",pc.iceConnectionState="+pc.iceConnectionState);
+			if ((pc.iceGatheringState==="complete") && (pc.iceConnectionState==="failed")){
+				logger('0.5: Restart ICE');
+				pc.restartIce();
+			}
 		}
 		async function negotiationEventHandler(){
 			logger('Handle Negotiation');
@@ -329,15 +304,20 @@ class WebRTC{
 					logger("Reconnect");
 				}else{
 					logger("Reconnect pc.iceGatheringState="+pc.iceGatheringState+",pc.iceConnectionState="+pc.iceConnectionState);
+					if ((pc.iceGatheringState==="complete") && (pc.iceConnectionState==="disconnected")){
+						logger('1: Restart ICE');
+						pc.restartIce();
+					}
+					/*
 					if ((pc.iceGatheringState==="complete") && 
-						((pc.iceConnectionState=="disconnected")||
+						((pc.iceConnectionState==="disconnected")||
 						(pc.iceConnectionState==="failed"))){
 							logger('1: Restart ICE');
 							pc.restartIce();
 					} else {
 						logger("1 dataChannel.readyState="+((dataChannel)?dataChannel.readyState:"null"));
 						logger("1 dataChannel.negotiated="+((dataChannel)?dataChannel.negotiated:"null"));
-					}
+					}*/
 					/*
 					if (prePolite==null) {
 						prePolite=polite;
