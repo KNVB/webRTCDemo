@@ -57,6 +57,7 @@ class Media{
 		});
 		this.startRecord=((mediaObj)=>{
 			var options = {mimeType: 'video/webm;codecs=h264'}; 
+			//var options = {mimeType: 'video/webm;codecs=vp9'}; 
 			try{
 				mediaRecorder = new MediaRecorder(mediaObj.srcObject);
 				recordedChunks=[];
