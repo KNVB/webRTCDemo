@@ -1,15 +1,22 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<title>WebRTC Device List</title>
-		
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
 		<script>
 			var audioInputList={};
 			var audioOutputList={};
 			var videoInputList={};
 			var constraints = {audio: true,video: true};
-			navigator.mediaDevices.getUserMedia(constraints).then(gotStream).then(gotDevices).catch(handleError);
-			
+			var supportedConstraints = navigator.mediaDevices.getSupportedConstraints();
+			$( document ).ready(function() {
+				navigator.mediaDevices.getUserMedia(constraints).then(gotStream).then(gotDevices).catch(handleError);
+				listContstraint();
+			});
 			function gotDevices(deviceList) {
 				deviceList.forEach((device)=>{
 					//console.log(device);
@@ -25,18 +32,12 @@
 							break;					
 					}
 				});
-				
-				console.log("Audio Input List");
-				listDevice(audioInputList);
-				console.log("Audio Output List");
-				listDevice(audioOutputList);
-				console.log("Video Input List");
-				listDevice(videoInputList);
-				
-				stream.getTracks().forEach(async track=>{
+			
+				window.stream.getTracks().forEach(async track=>{
 					await track.stop();
 				});
-				stream=null;
+				window.stream=null;
+				listDevices();
 			}
 			function gotStream(stream) {
 				window.stream = stream; // make stream available to console
@@ -45,13 +46,81 @@
 			function handleError(error) {
 			  console.log('navigator.MediaDevices.getUserMedia error: ', error.message, error.name);
 			}
-			function listDevice(list){
-				Object.keys(list).forEach(key=>{
-					console.log(list[key]);
-				});
+			function listContstraint(){
+				var constraintList=document.getElementById("constraints");
+				for (let constraint in supportedConstraints) {
+				  if (supportedConstraints.hasOwnProperty(constraint)) {
+					let row = document.createElement("div");
+					let elem = document.createElement("div");
+					row.className="row";
+					elem.className="col-12 border-bottom border-left border-right border-primary";
+					elem.innerHTML = constraint;
+					row.appendChild(elem);
+					constraintList.appendChild(row);
+				  }
+				}
+			}
+			function listDevice(list,columnIndex){
+				var count=2;
+				count=2;
+				Object.keys(list).forEach((key)=>{
+					$("#result > div:nth-child("+count+") > div:nth-child("+columnIndex+")").html(list[key]);
+					count++;
+				});	
+			}
+			function listDevices(){
+				var audioInputDeviceCount=Object.keys(audioInputList).length;
+				var audioOutputDeviceCount=Object.keys(audioOutputList).length;
+				var videoInputDeviceCount=Object.keys(videoInputList).length;
+				var maxDeviceCount=Math.max(audioInputDeviceCount,audioOutputDeviceCount,videoInputDeviceCount);
+				var row,rowList=[];
+				for (var i=0;i<maxDeviceCount;i++){
+					row=document.createElement("div");
+					row.id=i;
+					row.className="row";
+					
+					a=document.createElement("div");
+					a.className="col-4 border-bottom border-left border-primary";
+					row.append(a);
+					
+					a=document.createElement("div");
+					a.className="col-4 border-bottom border-left border-primary";
+					row.append(a);
+					
+					a=document.createElement("div");
+					a.className="col-4 border-bottom border-left border-right border-primary";
+					row.append(a);
+					
+					rowList.push(row);
+					$("#result").append(row);
+				}
+				listDevice(videoInputList,1);
+				listDevice(audioInputList,2);
+				listDevice(audioOutputList,3);
 			}
 		</script>
 	</head>
 	<body class="p-1">
+		<div id="result" class="container-fluid">
+			<div class="row">
+				<div class="col-4 border-bottom border-left border-top border-primary ">
+					Video Input List
+				</div>
+				<div class="col-4 border-bottom border-left border-top border-primary ">
+					Audio Input List
+				</div>
+				<div class="col-4 border border-primary ">
+					Audio Output List
+				</div>				
+			</div>
+		</div>
+		<br>
+		<div id="constraints" class="container-fluid">
+			<div class="row">
+				<div class="col-12 border-bottom border-left border-top border-primary ">
+					Supported Constraints
+				</div>
+			</div>
+		</div>
 	</body>
 </html>	
