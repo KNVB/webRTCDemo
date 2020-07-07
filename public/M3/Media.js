@@ -47,7 +47,8 @@ class Media{
 				remoteView.srcObject=event.streams[0];
 			} else {
 				remoteVideo.srcObject.addTrack(event.track);
-			}			
+			}
+			logger("Remote "+event.track.kind+" track is added");			
 		});
 		this.hasRecordedMedia=(()=>{
 			return hasRecordedMedia();

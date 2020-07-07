@@ -5,11 +5,15 @@ class WebRTC{
 				 {urls: "stun:stun.l.google.com:19302"},
 				 {urls: "turn:numb.viagenie.ca", credential: "turnserver", username: "sj0016092@gmail.com"}		
 				]};
+		var channelEventHandler;
 		var dataChannel=null,iceCandidateList=[], ignoreOffer = false,isDisconnectByUser=false;
 		var logger, makingOffer = false,myRollDiceResult=null;
-		var pc=null,polite=false,prePolite=null,trackEventHandler,socket,statsID=null;
+		var pc=null,polite=false,prePolite=null,trackEventHandler,socket;
 		this.call=(()=>{
 			call();
+		});
+		this.setChannelEventHandler=((handler)=>{
+			channelEventHandler=handler;
 		});
 		this.hangUp=((isLocalDiscReq)=>{
 			setDisconnectByUser(true);
@@ -18,11 +22,8 @@ class WebRTC{
 				socket.emit("closeConnection",{});  //send the request to peer
 			}
 			iceCandidateList=[];
-			/*
-			if (statsID!=null) {
-				clearInterval(statsID);
-			}*/
 		});
+		
 		this.setDisconnectByUser=((b)=>{
 			setDisconnectByUser(b);
 		});	
@@ -32,7 +33,7 @@ class WebRTC{
 		this.setSocket=((s)=>{
 			setSocket(s);
 		});
-		this.setTrackEvenHandlder=((handler)=>{
+		this.setTrackEventHandlder=((handler)=>{
 			trackEventHandler=handler;
 		});
 		this.setupStream=((stream)=>{
@@ -59,7 +60,7 @@ class WebRTC{
 							logger("1 add "+track.kind+" track");
 							pc.addTrack(track,stream);
 						} else {
-							logger("0 replace "+track.kind+" track");
+							logger("Replace "+track.kind+" track");
 							sender.replaceTrack(track);
 						}
 					});
@@ -90,81 +91,32 @@ class WebRTC{
 		* firefox does not support RTCPeerConnection.connectionState attribute 
 		**/
 		function connectionStateChangeHandler(event) {
-			logger("pc.connectionState="+pc.connectionState+","+isDisconnectByUser);
+			logger("pc.connectionState="+pc.connectionState+"<br>isDisconnectByUser="+isDisconnectByUser);
+			channelEventHandler(pc.connectionState);
 			if (pc.connectionState==="failed") {
 				logger('-1: Restart ICE');
 				pc.restartIce();
 			}
-			/*
-			switch(pc.connectionState) {
-				case "closed":
-					break;
-				case "disconnected":
-					pc.close();
-					break;
-				case "failed":
-					// One or more transports has terminated unexpectedly or in an error
-					//hangUp();
-					
-					if (isDisconnectByUser) {
-						hangUp();
-					} else {
-						pc=null;
-						if (polite) {
-							call();
-							logger("Making call again");
-						}
-					}
-					break;
-			}*/
 		}
 		function createConnection(){
-			//if (pc==null){
-				pc=new RTCPeerConnection(configuration);
-				pc.onconnectionstatechange = connectionStateChangeHandler;
-				pc.ondatachannel = dataChannelEventHandler;
-				pc.onicecandidate=iceCandidateEventHandler;
-				pc.oniceconnectionstatechange = iceConnectionStateChangeHandler;
-				pc.onicegatheringstatechange =iceGatheringStateChangeHandler;
-				pc.onnegotiationneeded=negotiationEventHandler;
-				pc.onsignalingstatechange=signalingStateChangeHandler;
-				pc.ontrack=trackEventHandler;
-				
-				dataChannel= pc.createDataChannel('chat');
-				logger("createConnection:"+pc.currentRemoteDescription);
-			//}
+			pc=new RTCPeerConnection(configuration);
+			pc.onconnectionstatechange = connectionStateChangeHandler;
+			pc.ondatachannel = dataChannelEventHandler;
+			pc.onicecandidate=iceCandidateEventHandler;
+			pc.oniceconnectionstatechange = iceConnectionStateChangeHandler;
+			pc.onicegatheringstatechange =iceGatheringStateChangeHandler;
+			pc.onnegotiationneeded=negotiationEventHandler;
+			pc.onsignalingstatechange=signalingStateChangeHandler;
+			pc.ontrack=trackEventHandler;
 			
-			if (statsID==null){
-				/*
-				statsID=window.setInterval(function() {
-				  pc.getStats(null).then(stats => {
-					let statsOutput = "--------------------------------------------------------------------";
-
-					stats.forEach(report => {
-					  statsOutput += `<h2>Report: ${report.type}</h3>\n<strong>ID:</strong> ${report.id}<br>\n` +
-									 `<strong>Timestamp:</strong> ${report.timestamp}<br>\n`;
-					  
-					  // Now the statistics for this report; we intentially drop the ones we
-					  // sorted to the top above
-
-					  Object.keys(report).forEach(statName => {
-						if (statName !== "id" && statName !== "timestamp" && statName !== "type") {
-						  statsOutput += `<strong>${statName}:</strong> ${report[statName]}<br>\n`;
-						}
-					  });
-					  statsOutput+= "======================================================";
-					  
-					});
-
-					logger(statsOutput);
-				  });
-				}, 10000);
-				*/
-			}
+			dataChannel= pc.createDataChannel('chat');
+			logger("createConnection:"+pc.currentRemoteDescription);
+			
 			iceCandidateList=[];
 		}
 		function dataChannelClose() {
 			logger('Data channel closed');
+			channelEventHandler('closed');
 			if (isDisconnectByUser){
 				dataChannel.onopen = null;
 				dataChannel.onmessage = null;
@@ -178,6 +130,7 @@ class WebRTC{
 		}
 		function dataChannelOpen() {
 		  logger('data channel is opened');
+		  channelEventHandler("opened");
 		}
 		function dataChannelMessage(message) {
 			logger('Received Message from Data Channel:'+message.data);
@@ -201,14 +154,15 @@ class WebRTC{
 		}
 
 		function iceConnectionStateChangeHandler(event) {
-			logger('ice connection state: ' + pc.iceConnectionState+",pc.iceGatheringState="+pc.iceGatheringState);
-			//if ((pc.iceConnectionState === "disconnected") ||(pc.iceConnectionState==="failed")) {
+			logger('ice connection state: ' + pc.iceConnectionState+"<br>pc.iceGatheringState="+pc.iceGatheringState);
+			channelEventHandler(pc.iceConnectionState);
 			if (pc.iceConnectionState==="failed") {	
 				logger('0: Restart ICE');
 				pc.restartIce();
 			}else {
 				if ((pc.iceConnectionState === "connected") && (dataChannel.readyState==="closed")){
 					dataChannel= pc.createDataChannel('chat');
+					logger('Recreate Data Channel');
 					/*
 					logger("0 dataChannel.readyState="+((dataChannel)?dataChannel.readyState:"null"));
 					logger("0 dataChannel.negotiated="+((dataChannel)?dataChannel.negotiated:"null"));
@@ -217,7 +171,7 @@ class WebRTC{
 			}
 		}
 		function iceGatheringStateChangeHandler() {
-			logger("ICE Gathering State ="+pc.iceGatheringState+",pc.iceConnectionState="+pc.iceConnectionState);
+			logger("ICE Gathering State ="+pc.iceGatheringState+"<br>pc.iceConnectionState="+pc.iceConnectionState);
 			if ((pc.iceGatheringState==="complete") && (pc.iceConnectionState==="failed")){
 				logger('0.5: Restart ICE');
 				pc.restartIce();
@@ -231,7 +185,7 @@ class WebRTC{
 				await pc.setLocalDescription();
 				
 				if (pc.localDescription){
-					logger("0:ignoreOffer="+ignoreOffer+",makingOffer="+makingOffer+",pc.iceConnectionState="+pc.iceConnectionState+",pc.signalingState="+pc.signalingState+",polite="+polite);
+					logger("0:ignoreOffer="+ignoreOffer+"<br>makingOffer="+makingOffer+"<br>pc.iceConnectionState="+pc.iceConnectionState+",pc.signalingState="+pc.signalingState+",polite="+polite);
 					socket.emit("sendSDP",pc.localDescription);
 				}
 			} catch(err) {
@@ -303,30 +257,11 @@ class WebRTC{
 				if (pc==null){
 					logger("Reconnect");
 				}else{
-					logger("Reconnect pc.iceGatheringState="+pc.iceGatheringState+",pc.iceConnectionState="+pc.iceConnectionState);
+					logger("Reconnect pc.iceGatheringState="+pc.iceGatheringState+"<br>pc.iceConnectionState="+pc.iceConnectionState);
 					if ((pc.iceGatheringState==="complete") && (pc.iceConnectionState==="disconnected")){
 						logger('1: Restart ICE');
 						pc.restartIce();
 					}
-					/*
-					if ((pc.iceGatheringState==="complete") && 
-						((pc.iceConnectionState==="disconnected")||
-						(pc.iceConnectionState==="failed"))){
-							logger('1: Restart ICE');
-							pc.restartIce();
-					} else {
-						logger("1 dataChannel.readyState="+((dataChannel)?dataChannel.readyState:"null"));
-						logger("1 dataChannel.negotiated="+((dataChannel)?dataChannel.negotiated:"null"));
-					}*/
-					/*
-					if (prePolite==null) {
-						prePolite=polite;
-					}
-					if ((pc.iceGatheringState=="complete") && (pc.iceConnectionState=="disconnected")){
-						closeConnection();
-						if (prePolite)
-							call();
-					}*/
 				}
 			});
 			socket.on("requestRollDice",(peerRollDiceResult)=>{
@@ -344,7 +279,7 @@ class WebRTC{
 
 				ignoreOffer = !polite && offerCollision;
 				if (pc){
-					logger("1:ignoreOffer="+ignoreOffer+",makingOffer="+makingOffer+",offerCollision="+offerCollision+",pc.iceConnectionState="+pc.iceConnectionState+",pc.signalingState="+pc.signalingState+",polite="+polite+",sdp.type="+sdp.type);
+					logger("1:ignoreOffer="+ignoreOffer+",makingOffer="+makingOffer+",offerCollision="+offerCollision+"<br>pc.iceConnectionState="+pc.iceConnectionState+",pc.signalingState="+pc.signalingState+",polite="+polite+",sdp.type="+sdp.type);
 				}else{ 
 					logger("pc=null");
 				}
