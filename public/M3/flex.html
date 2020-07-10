@@ -7,6 +7,7 @@
 			#gg{
 				display:none;
 			}
+			
 			video {
 				transform: scale(-1, 1);
 				object-fit: cover;
@@ -30,6 +31,12 @@
 				webrtc.setChannelEventHandler(handleChannelEvent);
 				webrtc.setTrackEventHandlder(handleRemoteTrack);
 				webrtc.setSocket(socket);
+				$("#player").mouseover((event)=>{
+					writeLog("Mouse over");
+				});
+				$("#player").on("touchmove",(event)=>{
+					writeLog("Touch move");
+				});
 			});
 			function call(){
 				webrtc.call();
@@ -117,13 +124,13 @@
 				</div>
 			</div>	
 			<div class="row">
-				<div class="border-left border-bottom border-primary col-6 d-flex flex-column h4 p-1 m-0">
+				<div class="border-left border-bottom border-primary col-6 d-flex flex-column p-1 m-0">
 					<video id="selfView" autoplay muted style="max-height:25vh;height:auto">
 						<!--
 							<source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
 						-->	
 					</video>
-					<div class="align-items-center bg-secondary d-flex flex-row text-white p-1">
+					<div class="align-items-center bg-secondary d-flex flex-row h4 mb-0 p-1 text-white">
 						<div class="align-self-start d-flex flex-row">
 							<div>&#x23f9;</div>
 							<div>&#x23f8;</div>
@@ -140,15 +147,17 @@
 						</div>
 					</div>
 				</div>
-				<div class="border-left border-bottom border-right border-primary col-6 d-flex flex-column h4 p-1 m-0">
-					<video id="remoteView" autoplay muted style="max-height:25vh;height:auto">
-						<!--
-						<source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-						-->
-					</video>
-					<div class="align-items-center bg-secondary d-flex flex-row text-white p-1">
-						<div>&#x1f507;</div>
-						<div>&#x26f6;</div>
+				<div class="border-left border-bottom border-right border-primary col-6 p-0 m-0">
+					<div class="d-flex flex-column h4 p-1 mediaPlayer m-0">
+						<video id="remoteView" autoplay muted style="max-height:25vh;height:auto">
+							<!--
+							<source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+							-->
+						</video>
+						<div class="align-items-center bg-secondary d-flex flex-row justify-content-between text-white p-1">
+							<div class="muteBtn">&#x1f507;<span class="elapseTime"></span></div>
+							<div class="minMaxBtn">&#x26f6;</div>
+						</div>
 					</div>
 				</div>
 			</div>
