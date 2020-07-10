@@ -7,28 +7,9 @@
 			#gg{
 				display:none;
 			}
-			.gridContainer{
-				display: grid;
-				grid-template-columns: 1fr;
-				grid-template-rows: 1fr 2fr 1fr 1fr 1fr 1fr;
-			}
-			.row0{
-				display: grid;
-				grid-template-columns: 1fr 1fr;
-				grid-template-rows:1fr;
-			}
-			.row1{
-				display: grid;
-				grid-template-columns:1fr;
-				grid-template-rows:1fr;
-			}
-			.videoCell{
-				display: grid;
-				grid-template-columns: 1fr;
-				grid-template-rows: 3fr 1fr;
-			}
 			video {
 				transform: scale(-1, 1);
+				object-fit: cover;
 			}
 		</style>
 		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
@@ -117,7 +98,7 @@
 			function writeLog(message) {
 				var logger=document.getElementById("logger");
 				var date=new Date();
-				logger.innerHTML=date.getHours()+":"+date.getMinutes() +":"+date.getSeconds()+"."+date.getMilliseconds()+"<br>"+message+"<hr>"+logger.innerHTML;
+				$(logger).prepend("<div>"+date.getHours()+":"+date.getMinutes() +":"+date.getSeconds()+"."+date.getMilliseconds()+"<br>"+message+"<hr></div>");
 			}
 //============================================================================================
 			socket.on("closeConnection",()=>{
@@ -126,41 +107,53 @@
 		</script>
 	</head>
 	<body class="p-1">
-		<div class="border-top border-primary gridContainer">
-			<div class="row0">
-				<div class="border-left border-bottom border-primary m-0 p-0">
+		<div class="border-top border-primary container-fluid d-flex flex-column">
+			<div class="row">
+				<div class="border-left border-bottom border-primary col-6 h4 p-1 mb-0">
 					Self View
 				</div>
-				<div class="border-left border-bottom border-right border-primary m-0 p-0">
+				<div class="border-left border-bottom border-right border-primary col-6 h4 p-1 mb-0">
 					Remote View
 				</div>
-			</div>
-			<div class="row0">
-				<div class="border-left border-bottom border-primary videoCell p-1">
-					<div>
-						<video id="selfView" autoplay muted class="h-100 w-100">
-							
-						</video>
-					</div>
-					<div class="bg-secondary text-white">
-						9080
-					</div>
-				</div>
-				<div class="border-left border-bottom border-right border-primary videoCell p-1">
-					<div>
-						<video id="remoteView" autoplay muted class="h-100 w-100">
-							<!--
+			</div>	
+			<div class="row">
+				<div class="border-left border-bottom border-primary col-6 d-flex flex-column h4 p-1 m-0">
+					<video id="selfView" autoplay muted style="max-height:25vh;height:auto">
+						<!--
 							<source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-							-->
-						</video>
-					</div>
-					<div class="bg-secondary text-danger">
-						9080
+						-->	
+					</video>
+					<div class="align-items-center bg-secondary d-flex flex-row text-white p-1">
+						<div class="align-self-start d-flex flex-row">
+							<div>&#x23f9;</div>
+							<div>&#x23f8;</div>
+						</div>
+						<div class="align-self-center d-flex flex-row">
+							<div>&#x25b6;</div>
+							<div>&#x23fa;</div>
+						</div>
+						<div class="align-self-end d-flex flex-row">
+							<div>&#x1f50a;</div>
+							<div>&#x1f507;</div>
+							<div>&#9634;</div>
+							<div>&#x26f6;</div>
+						</div>
 					</div>
 				</div>
-			</div>			
-			<div class="row1 border-left border-bottom border-right border-primary">
-				<div class="align-items-center d-flex flex-row justify-content-center p-0">
+				<div class="border-left border-bottom border-right border-primary col-6 d-flex flex-column h4 p-1 m-0">
+					<video id="remoteView" autoplay muted style="max-height:25vh;height:auto">
+						<!--
+						<source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+						-->
+					</video>
+					<div class="align-items-center bg-secondary d-flex flex-row text-white p-1">
+						<div>&#x1f507;</div>
+						<div>&#x26f6;</div>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="align-items-center border-left border-bottom border-right border-primary col-12 d-flex flex-row justify-content-center p-0">
 					<div class="btn-group-toggle d-flex justify-content-center p-1">
 						<button class="btn-sm btn btn-lg btn-success" onclick="call()">Make A Call</button>
 					</div>
@@ -171,10 +164,10 @@
 					<div class="btn-group-toggle d-flex justify-content-center p-1">
 						<button class="btn-sm btn btn-lg btn-success" onclick="recordRemoteStream()">Record Remote Stream</button>
 					</div>
-				</div>	
+				</div>
 			</div>
-			<div class="row1 border-left border-bottom border-right border-primary">
-				<div class="align-items-center d-flex flex-row justify-content-center p-0">
+			<div class="row">
+				<div class="align-items-center border-left border-bottom border-right border-primary col-12 d-flex flex-row justify-content-center p-0">
 					<div class="btn-group-toggle p-1">
 						<label class="btn-sm btn btn-lg btn-success">
 							Share 
@@ -194,11 +187,11 @@
 								<option value="yes">Yes</option>
 							</select>
 						</label>
-					</div>	
-				</div>			
+					</div>				
+				</div>
 			</div>
-			<div class="row1 border-left border-bottom border-right border-primary">
-				<div class="d-flex flex-row justify-content-center p-0">
+			<div class="row">
+				<div class="align-items-center border-left border-bottom border-right border-primary col-12 d-flex flex-row justify-content-center p-0">
 					<div class="btn-group-toggle d-flex justify-content-center p-1">
 						<button class="btn-sm btn btn-lg btn-success" onclick="hangUp(true)">Hangup</button>
 					</div>
@@ -212,12 +205,14 @@
 					</div>
 				</div>
 			</div>
-			<div class="row1 border-left border-bottom border-right border-primary position-relative">
-				<div class="h-100 p-0 position-absolute overflow-auto" id="logger">
+			<div class="position-relative row" style="height:20vh">
+				<div class="border-bottom border-left border-primary border-right  
+							col-12 d-flex flex-column h-100 overflow-auto position-absolute p-0" 
+					id="logger">
 				</div>
-			</div>			
+			</div>
 		</div>
 		<textarea id="gg">
 		</textarea>
 	</body>
-</html>	
+</html>
