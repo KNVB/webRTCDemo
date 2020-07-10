@@ -1,0 +1,219 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+		<style>
+			.gridContainer{
+				display: grid;
+				grid-template-columns: 1fr;
+				grid-template-rows: 1fr 6fr 1fr 1fr 1fr 1fr;
+			}
+			.row0{
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				grid-template-rows:1fr;
+			}
+			.row1{
+				display: grid;
+				grid-template-columns:1fr;
+				grid-template-rows:1fr;
+			}
+			.videoCell{
+				display: grid;
+				grid-template-columns: 1fr;
+				grid-template-rows: 3fr 1fr;
+			}
+			video {
+				transform: scale(-1, 1);
+				object-fit: cover;
+			}
+		</style>
+		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="Media.js"></script>
+		<script src="WebRTC.js"></script>
+		<script>
+			var socket = io.connect();
+			var media=new Media();
+			var localVideo,webrtc=new WebRTC(),remoteVideo;
+			$( document ).ready(function() {
+				localVideo=document.getElementById("selfView");
+				remoteVideo=document.getElementById("remoteView");
+				media.setLogger(writeLog);
+				webrtc.setLogger(writeLog);
+				webrtc.setChannelEventHandler(handleChannelEvent);
+				webrtc.setTrackEventHandlder(handleRemoteTrack);
+				webrtc.setSocket(socket);
+			});
+			function call(){
+				webrtc.call();
+				updateSrc();
+			}
+			function handleChannelEvent(state){
+				var statusBox=document.getElementById("status");
+				statusBox.textContent=state;
+				switch (state) {
+					case "checking":
+					case "closed":
+					case "disconnected":
+					case "failed":
+						$(statusBox).parent("button").removeClass("btn-success").addClass("btn-danger");
+						break
+					default:
+						$(statusBox).parent("button").removeClass("btn-danger").addClass("btn-success");
+						break
+				}
+			}
+			function handleRemoteTrack(event){
+				media.handleRemoteTrack(event,remoteVideo);
+			}
+			function hangUp(isLocalDiscReq){
+				webrtc.hangUp(isLocalDiscReq);
+				if (media.hasRecordedMedia()){
+					media.stopRecord();  //<=It will trigger the download video event.
+				}	
+				media.closeVideoStream(remoteVideo);
+				media.closeVideoStream(localVideo);
+			}
+			function recordRemoteStream(){
+				media.startRecord(remoteVideo);
+			}
+			async function updateSrc(){
+				var shareAudio=document.getElementById("shareAudio");
+				var videoSrc=document.getElementById("videoSrc");
+				
+				stream=await media.getStream($(videoSrc).val(),($(shareAudio).val()=="yes"));
+				if (stream) {
+					//writeLog("updateSrc():videoSrc="+$(videoSrc).val()+",shareAudio="+$(shareAudio).val()+",count="+stream.getTracks().length);
+					webrtc.setupStream(stream);
+					localVideo.srcObject=null;
+					localVideo.srcObject=stream;
+				} else {
+					media.closeVideoStream(localVideo);
+				}
+			}
+//============================================================================================			
+			function clearLog() {
+			  chatelement = document.getElementById('logger');
+			  chatelement.innerHTML='';
+			}
+			function copyLog(){
+				var content=$("#logger").html();
+				var textbox=document.getElementById("gg");
+				var brRegEx = /<br\s*[\/]?>/gi;
+				var hrRegEx= /<hr>/gi;
+				content=content.replace(brRegEx, "\n");
+				content=content.replace(hrRegEx,"\n=============================\n");
+				textbox.value=content;
+				textbox.select();
+				textbox.setSelectionRange(0, 99999);
+				document.execCommand("copy");
+			}
+			function writeLog(message) {
+				var logger=document.getElementById("logger");
+				var date=new Date();
+				logger.innerHTML=date.getHours()+":"+date.getMinutes() +":"+date.getSeconds()+"."+date.getMilliseconds()+"<br>"+message+"<hr>"+logger.innerHTML;
+			}
+//============================================================================================
+			socket.on("closeConnection",()=>{
+				hangUp(false);
+			});			
+		</script>
+	</head>
+	<body class="p-1">
+		<div class="border-top border-primary gridContainer">
+			<div class="row0">
+				<div class="border-left border-bottom border-primary">
+					<h4> Self View </h4>
+				</div>
+				<div class="border-left border-bottom border-right border-primary">
+					<h4> Remote View </h4>
+				</div>
+			</div>
+			<div class="row0">
+				<div class="border-left border-bottom border-primary videoCell p-1">
+					<div class="bg-primary">
+						<video id="selfView" autoplay muted class="h-100 w-100">
+							<source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+						</video>
+					</div>
+					<div class="bg-secondary text-white">
+						9080
+					</div>
+				</div>
+				<div class="border-left border-bottom border-right border-primary videoCell p-1">
+					<div class="bg-primary">
+						<video id="remoteView" autoplay muted class="h-100 w-100">
+							<source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+						</video>
+					</div>
+					<div class="bg-secondary text-danger">
+						9080
+					</div>
+				</div>
+			</div>			
+			<div class="row1 border-left border-bottom border-right border-primary">
+				<div class="align-items-center d-flex flex-row justify-content-center p-0">
+					<div class="btn-group-toggle d-flex justify-content-center p-1">
+						<button class="btn-sm btn btn-lg btn-success" onclick="call()">Make A Call</button>
+					</div>
+				
+					<div class="btn-group-toggle d-flex justify-content-center p-1">
+						<button class="btn-sm btn btn-lg btn-success" onclick="clearLog()">Clear Log</button>
+					</div>
+					<div class="btn-group-toggle d-flex justify-content-center p-1">
+						<button class="btn-sm btn btn-lg btn-success" onclick="recordRemoteStream()">Record Remote Stream</button>
+					</div>
+				</div>	
+			</div>
+			<div class="row1 border-left border-bottom border-right border-primary">
+				<div class="align-items-center d-flex flex-row justify-content-center p-0">
+					<div class="btn-group-toggle p-1">
+						<label class="btn-sm btn btn-lg btn-success">
+							Share 
+							<select name="videoSrc" id="videoSrc" class="bg-success text-white" onchange="updateSrc()">
+								<option value="no" >No</option>
+								<option value="webCam">Web Cam</option>
+								<option value="screen">Screen</option>
+							</select>
+							Video
+						</label>
+					</div>
+					<div class="btn-group-toggle p-1">
+						<label class="btn-sm btn btn-lg btn-success">
+							Share Audio
+							<select name="shareAudio" id="shareAudio" class="bg-success text-white" onchange="updateSrc()">
+								<option value="no" >No</option>
+								<option value="yes">Yes</option>
+							</select>
+						</label>
+					</div>	
+				</div>			
+			</div>
+			<div class="row1 border-left border-bottom border-right border-primary">
+				<div class="d-flex flex-row justify-content-center p-0">
+					<div class="btn-group-toggle d-flex justify-content-center p-1">
+						<button class="btn-sm btn btn-lg btn-success" onclick="hangUp(true)">Hangup</button>
+					</div>
+					<div class="btn-group-toggle d-flex justify-content-center p-1">
+						<button class="btn-sm btn btn-lg btn-success" onclick="copyLog()">Copy log to clipboard</button>
+					</div>
+					<div class="btn-group-toggle d-flex justify-content-center p-1">
+						<button class="btn btn-lg btn-sm btn-danger">
+							Connection status:&nbsp;<span id="status">closed</span>
+						</button>
+					</div>
+				</div>
+			</div>
+			<div class="row1 border-left border-bottom border-right border-primary">
+				<div class="h-100 p-0 position-absolute overflow-auto" id="logger">
+				</div>
+			</div>			
+		</div>
+		<textarea id="gg">
+		</textarea>
+	</body>
+</html>	
