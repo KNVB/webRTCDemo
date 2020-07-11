@@ -44,10 +44,9 @@ class Media{
 		});
 		this.handleRemoteTrack=((event,remoteVideo)=>{
 			if (remoteVideo.srcObject==null){
-				remoteView.srcObject=event.streams[0];
-			} else {
-				remoteVideo.srcObject.addTrack(event.track);
+				remoteView.srcObject=new MediaStream();
 			}
+			remoteVideo.srcObject.addTrack(event.track);
 			logger("Remote "+event.track.kind+" track is added");			
 		});
 		this.hasRecordedMedia=(()=>{

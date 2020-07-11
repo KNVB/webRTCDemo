@@ -7,6 +7,14 @@
 			#gg{
 				display:none;
 			}
+			.full_screen {
+				width: 100vw;
+				position: fixed;
+				height: 100vh;
+				top: 0;
+				left: 0;
+				z-index: 100;
+			}
 			video {
 				transform: scale(-1, 1);
 				object-fit: cover;
@@ -15,6 +23,18 @@
 		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
 		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+		<script>
+			let clicked = true;
+			function myFunction() {
+				let media_card = document.getElementById("media_wrapper");
+				if (clicked) {
+					media_card.classList.add("full_screen");
+				} else {
+					media_card.classList.remove("full_screen");
+				}
+				clicked = !clicked;
+			}
+		</script>
 	</head>
 	<body class="p-1">
 		<div class="border-top border-primary container-fluid d-flex flex-column">
@@ -27,13 +47,37 @@
 				</div>
 			</div>	
 			<div class="row">
-				<div class="border-left border-bottom border-primary col-6 
-							p-1 m-0">
-					<video id="selfView" autoplay controls muted style="max-height:25vh;height:auto"></video>		
+				<div class="border-left border-bottom border-primary 
+							col-6 p-1"
+					style="height:25vh">
+					<div class="card w-100 h-100 text-white" id="media_wrapper">
+						<video id="selfView" autoplay muted class="card-body p-0">
+							<!--
+							<source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+							-->
+						</video>
+						<div class="align-items-center bg-secondary card-footer d-flex flex-row 
+									h4 justify-content-between mb-0 p-1">
+							<div class="muteBtn">&#x1f507;<span class="elapseTime"></span></div>
+							<div class="minMaxBtn" onclick="myFunction()">&#x26f6;</div>
+						</div>
+					</div>
 				</div>
-				<div class="border-left border-bottom border-right border-primary col-6 d-flex flex-column h4 p-1 m-0">
-					<video id="remoteView" autoplay controls muted>
-					</video>
+				<div class="border-left border-bottom border-primary 
+							col-6 p-1"
+					style="height:25vh">
+					<div class="card w-100 h-100 text-white" id="media_wrapper">
+						<video id="remoteView" autoplay muted class="card-body p-0">
+							<!--
+							<source src="https://www.w3schools.com/tags/movie.mp4" type="video/mp4">
+							-->
+						</video>
+						<div class="align-items-center bg-secondary card-footer d-flex flex-row 
+									h4 justify-content-between mb-0 p-1">
+							<div class="muteBtn">&#x1f507;<span class="elapseTime"></span></div>
+							<div class="minMaxBtn" onclick="myFunction()">&#x26f6;</div>
+						</div>
+					</div>
 				</div>
 			</div>
 			<div class="row">
