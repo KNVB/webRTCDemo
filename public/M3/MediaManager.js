@@ -53,18 +53,45 @@ class MediaManager{
 					config["video"]=true;
 					config["audio"]=shareAudio;
 					break;
+				case "no":
+					if (shareAudio) {
+						config["audio"]=sampleConstraint["audio"];
+					}
+					break;
 			}
 			logger("Video source="+videoSrc+",LocalMedia:config="+JSON.stringify(config));
-			switch (videoSrc){
-				case "backCam":
-				case "frontCam":
-					stream = await navigator.mediaDevices.getUserMedia(config);
-					break;
-				case "screen":
-					stream = await navigator.mediaDevices.getDisplayMedia(config);
-					break;
-			}
-			return stream;
+			try{
+				switch (videoSrc){
+					case "backCam":
+					case "frontCam":
+						stream = await navigator.mediaDevices.getUserMedia(config);
+						break;
+					case "screen":
+						stream = await navigator.mediaDevices.getDisplayMedia(config);
+						if (shareAudio){
+							if (stream.getAudioTracks().length<1) {
+								config["audio"]=sampleConstraint["audio"];
+								var audioStream = await navigator.mediaDevices.getUserMedia(config);
+								if (audioStream) {
+									audioStream.getAudioTracks().forEach((track)=>{
+										stream.addTrack(track);
+									});
+								}	
+							}
+						}
+						break;
+					case "no":
+						if (shareAudio) {
+							stream = await navigator.mediaDevices.getUserMedia(config);
+						}
+						break;	
+				}
+			} catch(error){
+				logger("getLocalStream failure:"+error);
+			} finally{
+				logger("getLocalStream complete");
+				return stream;
+			}				
 		}
 	}	
 }

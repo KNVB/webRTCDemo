@@ -94,6 +94,13 @@ class MediaPlayer {
 		this.setLogger=((wl)=>{
 			logger=wl;
 		});
+		this.setMirror=((isMirror)=>{
+			if (isMirror) {
+				$(videoTag).addClass("mirror");
+			} else {
+				$(videoTag).removeClass("mirror");
+			}
+		});
 		this.setSource=((src)=>{
 			setSource(src);
 		});

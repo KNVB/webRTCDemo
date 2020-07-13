@@ -19,6 +19,9 @@
 				left: 0;
 				z-index: 100;
 			}
+			.mirror{
+				transform: scale(-1, 1);
+			}
 			.pinp{
 				height:20vh;
 				width:30vw;
@@ -26,9 +29,9 @@
 				bottom: 50;
 				right: 5;
 				z-index: 100;
-			}
+			}			
 			video {
-				transform: scale(-1, 1);
+				
 				object-fit: cover;
 			}
 		</style>
@@ -62,6 +65,10 @@
 				
 			});
 //============================================================================================						
+			function call(){
+				webrtc.call();
+				updateSrc();
+			}
 			function handleChannelEvent(state){
 				var statusBox=document.getElementById("status");
 				statusBox.textContent=state;
@@ -101,7 +108,16 @@
 				
 				var stream=await mediaManager.getLocalStream($(videoSrc).val(),($(shareAudio).val()=="yes"));
 				if (stream){
+					switch ($(videoSrc).val()){
+						case "frontCam": 
+							localMediaPlayer.setMirror(true);
+							break;
+						case "backCam":
+							localMediaPlayer.setMirror(false);
+							break;
+					}
 					localMediaPlayer.setStream(stream);
+					webrtc.setupStream(stream);
 				} else {
 					localMediaPlayer.reset();
 				}
