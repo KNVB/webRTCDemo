@@ -7,9 +7,11 @@
 			#gg{
 				display:none;
 			}
-			.btnlink{
-				color:inherit;
-				text-decoration:none;
+			.btnlink:hover{
+				cursor:pointer;
+			}
+			.controlPanel{
+				font-size:20px;
 			}
 			.full_screen {
 				width: 100vw;
@@ -23,19 +25,19 @@
 				transform: scale(-1, 1);
 			}
 			.pinp{
-				height:20vh;
-				width:30vw;
+				height:30vh;
+				width:40vw;
 				position: fixed;
-				bottom: 50;
-				right: 5;
+				bottom: 5px;
+				right: 5px;
 				z-index: 100;
 			}			
 			video {
-				
 				object-fit: cover;
 			}
 		</style>
-		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+		<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+		<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
 		<script src="/socket.io/socket.io.js"></script>
@@ -59,10 +61,8 @@
 				webrtc.setTrackEventHandlder(handleRemoteTrack);
 				webrtc.setSocket(socket);
 				
-				
 				//localMediaPlayer.setSource("https://www.w3schools.com/tags/movie.mp4");
 				//remoteMediaPlayer.setSource("https://www.w3schools.com/html/mov_bbb.mp4");
-				
 			});
 //============================================================================================						
 			function call(){
@@ -107,19 +107,10 @@
 				var videoSrc=document.getElementById("videoSrc");
 				
 				var stream=await mediaManager.getLocalStream($(videoSrc).val(),($(shareAudio).val()=="yes"));
+				localMediaPlayer.reset();
 				if (stream){
-					switch ($(videoSrc).val()){
-						case "frontCam": 
-							localMediaPlayer.setMirror(true);
-							break;
-						case "backCam":
-							localMediaPlayer.setMirror(false);
-							break;
-					}
 					localMediaPlayer.setStream(stream);
 					webrtc.setupStream(stream);
-				} else {
-					localMediaPlayer.reset();
 				}
 			}
 //============================================================================================			
