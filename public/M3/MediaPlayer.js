@@ -1,22 +1,24 @@
 class MediaPlayer {
 	constructor(){
 		var div,muted=true;	
-		var fullScreenCloneList=[],pInPCloneList=[];
+		var maxMinCloneList=[],pInPCloneList=[];
 		var btnDiv=document.createElement("div");
 		var cardFooter=document.createElement("div");
 		var container=document.createElement("div");
-		var controlPanel=document.createElement("div");
 		
 		var elapseTimeSpan=document.createElement("span");
-		var logger;
-	
-		var svgString;
+		var id=new Date().getTime(),logger;
+		var maxMinBtn,pInPBtn;
+		var self=this,svgString;
 		var videoTag=document.createElement("video");
 		var upperDiv=document.createElement("div");
 		
 		container.className="card h-100 text-white";
 		container.append(videoTag);
 		container.append(cardFooter);
+		container.onclick=(()=>{
+			$(cardFooter).collapse("toggle");
+		});		
 		
 		videoTag.className="card-body p-0";
 		videoTag.autoplay=true; 
@@ -28,7 +30,7 @@ class MediaPlayer {
 		//Mute button
 		div=document.createElement("div");
 		div.innerHTML="&#x1f507;";
-		div.className="btnlink controlPanel";
+		div.className="btnlink";
 		$(div).click((event)=>{
 			if (muted) {
 				videoTag.muted=false; 
@@ -53,44 +55,42 @@ class MediaPlayer {
 		svgString+="<path d=\"M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 1.98 2 1.98h18c1.1 0 2-.88 2-1.98V5c0-1.1-.9-2-2-2zm0 16.01H3V4.98h18v14.03z\"/>";
 		svgString+="</svg>";
 		
-		div=document.createElement("div");
-		div.innerHTML=svgString;
-		div.className="btnlink";
-		$(div).click((event)=>{
-			pInP();
+		pInPBtn=document.createElement("div");
+		pInPBtn.innerHTML=svgString;
+		pInPBtn.className="btnlink";
+		$(pInPBtn).click((event)=>{
+			doPInP();
 		});
-		div.title="P In P";
-		btnDiv.append(div);
+		pInPBtn.title="P In P";
+		btnDiv.append(pInPBtn);
 		
 		//Mirror button
 		div=document.createElement("div");
 		div.innerHTML="&#x21c4;";
 		div.className="btnlink";
 		$(div).click((event)=>{
-			mirror();	
+			doMirror();	
 		});
 		div.title="Mirror Video";
 		btnDiv.append(div);
 		
 		//Max/Min button
-		div=document.createElement("div");
-		div.innerHTML="&#x26f6;";
-		div.className="btnlink maxMin";
-		div.title="Max/Min video";
-		$(div).click((event)=>{
-			maxMin();
+		maxMinBtn=document.createElement("div");
+		maxMinBtn.innerHTML="&#x26f6;";
+		maxMinBtn.className="btnlink maxMin";
+		maxMinBtn.title="Max/Min video";
+		$(maxMinBtn).click((event)=>{
+			doMaxMin();
 		});
-		btnDiv.append(div);
+		btnDiv.append(maxMinBtn);
 		
-		btnDiv.className="align-items-center controlPanel d-flex flex-row justify-content-between";
-		upperDiv.className="align-items-center controlPanel d-flex flex-row justify-content-between";
-		
-		controlPanel.className="d-flex flex-column pl-1 pr-1";
-		controlPanel.append(upperDiv);
-		controlPanel.append(btnDiv);		
-				
-		cardFooter.className="bg-secondary card-footer p-0";
-		cardFooter.append(controlPanel);
+		btnDiv.className="align-items-center d-flex flex-row justify-content-between p-0";
+		upperDiv.className="align-items-center d-flex flex-row justify-content-between p-0";
+
+		cardFooter.className="bg-secondary card-footer collapse controlPanel show p-1";
+		cardFooter.append(upperDiv);
+		cardFooter.append(btnDiv);		
+
 //==========================================================================================================						
 		this.addTrack=((track)=>{
 			if (videoTag.srcObject==null){
@@ -105,6 +105,21 @@ class MediaPlayer {
 		this.getVideoTag=(()=>{
 			return getVideoTag();
 		});
+		this.maxMin=(()=>{
+			$(container).addClass("full_screen");
+			maxMinBtn.innerHTML="&#9634;";
+		});
+		this.pInP=(()=>{
+			$(container).removeClass("h-100");
+			$(container).addClass("pinp");
+			$(container).removeClass("h-100");
+			$(container).removeClass("full_screen");
+			$(container).draggable();
+		});
+		this.remove=(()=>{
+			container.remove();
+			container=null;
+		});
 		this.reset=(()=>{
 			if (videoTag.srcObject!=null) {
 				logger("closeVideoStream:no. of track="+videoTag.srcObject.getTracks().length);
@@ -114,87 +129,95 @@ class MediaPlayer {
 				videoTag.srcObject=null;
 			}
 		});
+		this.setCurrentTime=((currentTime)=>{
+			videoTag.currentTime=currentTime;
+		});
 		this.setLogger=((wl)=>{
 			logger=wl;
 		});
+		this.setMaxMinHandler=((handler)=>{
+			$(maxMinBtn).unbind("click");
+			$(maxMinBtn).click((event)=>{
+				handler();
+			});
+		});
+		this.setPInPHandler=((handler)=>{
+			$(pInPBtn).unbind("click");
+			$(pInPBtn).click((event)=>{
+				handler();
+			});
+		});
 		this.setSource=((src)=>{
-			setSource(src);
+			var source=document.createElement("source");
+			source.src=src;
+			videoTag.append(source);
 		});
 		this.setStream=((stream)=>{
-			setStream(stream);
+			videoTag.srcObject=null;
+			videoTag.srcObject=stream;
 		});
 //==========================================================================================================				
 		function clearCloneList(cloneList){
-			var clone;
+			var mp;
 			while (cloneList.length>0){
-				clone=cloneList.pop();
-				$(clone).remove();
+				mp=cloneList.pop();
+				mp.remove();
 			}
 		}
-		function cloneVideo(clone){
-			var cloneVideoTag=$(clone).find("video.card-body")[0];
-			var cloneElapseTimeSpan=$(clone).find("div.elapseTime")[0];
-			cloneVideoTag.currentTime=videoTag.currentTime;
-			cloneVideoTag.srcObject=$(container).find("video.card-body")[0].srcObject;
-			cloneVideoTag.ontimeupdate=(()=>{
-				cloneElapseTimeSpan.textContent=cloneVideoTag.currentTime.toString().toHHMMSS();
-			});
+		function cloneObj(){
+			var mp=new MediaPlayer();
+			mp.setCurrentTime(videoTag.currentTime);
+			mp.setStream(videoTag.srcObject);
+			mp.setMaxMinHandler(doMaxMin);
+			mp.setPInPHandler(doPInP);
+			mp.setLogger(logger);
+			$("body").append(mp.getDOMObj());
+			return mp;
+		}
+		function doMaxMin(){
+			if (pInPCloneList.length>0){
+				clearCloneList(pInPCloneList);
+				$(cardFooter).collapse("toggle");
+				$(container).show();
+			}
+			if (maxMinCloneList.length>0){
+				clearCloneList(maxMinCloneList);
+				$(cardFooter).collapse("toggle");
+				$(container).show();
+			} else {	
+				var clone=cloneObj();
+				clone.maxMin();				
+				$(container).hide();
+				$(cardFooter).collapse("show");
+				maxMinCloneList.push(clone);
+			}
+		}
+		function doMirror(){
+			$(videoTag).toggleClass("mirror");
+		}
+		function doPInP(){
+			if (maxMinCloneList.length>0){
+				clearCloneList(maxMinCloneList);
+				$(cardFooter).collapse("show");
+				$(container).show();
+			}
+			if (pInPCloneList.length>0){
+				clearCloneList(pInPCloneList);
+				$(cardFooter).collapse("show");
+				$(container).show();
+				
+			} else {
+				var clone=cloneObj();
+				clone.pInP();				
+				$(container).hide();
+				pInPCloneList.push(clone);
+			}
 		}
 		function getVideoTag(){
 			return videoTag;
 		}
-		function maxMin(){
-			var clone;
-			if (pInPCloneList.length>0){
-				clearCloneList(pInPCloneList);
-				$(container).show();
-			}
-			if (fullScreenCloneList.length>0){
-				clearCloneList(fullScreenCloneList);
-				$(container).show();
-			} else {	
-				clone=$(container).clone(true);
-				cloneVideo(clone);
-				$(clone).addClass("full_screen");
-				$(clone).find("div.maxMin").html("&#9634;");
-				$("body").append(clone);
-				$(container).hide();
-				fullScreenCloneList.push(clone);
-			}
-		}
-		function mirror(){
-			$(videoTag).toggleClass("mirror");
-		}
-		function pInP(){
-			var clone;
-			if (fullScreenCloneList.length>0){
-				clearCloneList(fullScreenCloneList);
-				$(container).show();
-			}
-			if (pInPCloneList.length>0){
-				clearCloneList(pInPCloneList);
-				$(container).show();
-			} else {
-				var clone=$(container).clone(true);
-				cloneVideo(clone);
-				$("body").append(clone);
-				$(clone).addClass("pinp");
-				$(clone).removeClass("h-100");
-				$(clone).removeClass("full_screen");
-				$(clone).draggable();
-				$(container).hide();
-				pInPCloneList.push(clone);
-			}
-		}		
-		function setSource(src){
-			var source=document.createElement("source");
-			source.src=src;
-			videoTag.append(source);
-		}
-		function setStream(stream){
-			videoTag.srcObject=null;
-			videoTag.srcObject=stream;
-		}
+		
+		
 		String.prototype.toHHMMSS = function () {
 			var sec_num = parseInt(this, 10); // don't forget the second param
 			var hours   = Math.floor(sec_num / 3600);
