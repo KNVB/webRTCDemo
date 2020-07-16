@@ -1,97 +1,94 @@
 class MediaPlayer {
 	constructor(){
-		var div,muted=true;	
+		var hideControlBar=true,logger,muted=true,svgString;	
 		var maxMinCloneList=[],pInPCloneList=[];
-		var btnDiv=document.createElement("div");
-		var cardFooter=document.createElement("div");
 		var container=document.createElement("div");
-		
+		var controlBar=document.createElement("div");
 		var elapseTimeSpan=document.createElement("span");
-		var id=new Date().getTime(),logger;
-		var maxMinBtn,pInPBtn;
-		var self=this,svgString;
+		var id=new Date().getTime();
+		var lowerControlBar=document.createElement("div");
+		var maxMinBtn=document.createElement("div");
+		var mirrorBtn=document.createElement("div");
+		var muteBtn=document.createElement("div");
+		var pInPBtn=document.createElement("div");
+		var playerOverlay=document.createElement("div");
+		var playerOverlayCenter=document.createElement("div");
+		var upperControlBar=document.createElement("div");
 		var videoTag=document.createElement("video");
-		var upperDiv=document.createElement("div");
-		
-		container.className="card h-100 text-white";
-		container.append(videoTag);
-		container.append(cardFooter);
-		container.onclick=(()=>{
-			$(cardFooter).collapse("toggle");
-		});		
-		
-		videoTag.className="card-body p-0";
-		videoTag.autoplay=true; 
-		videoTag.muted=true;
-		videoTag.ontimeupdate=(()=>{
-			elapseTimeSpan.textContent=videoTag.currentTime.toString().toHHMMSS();
-		});		
-		
-		//Mute button
-		div=document.createElement("div");
-		div.innerHTML="&#x1f507;";
-		div.className="btnlink";
-		$(div).click((event)=>{
-			if (muted) {
-				videoTag.muted=false; 
-				$(event.target).html("&#x1f50a;");				
-			} else {
-				videoTag.muted=true;
-				$(event.target).html("&#x1f507;");				
-			}
-			muted=!muted;
-		});
-		div.title="Mute";
-		upperDiv.append(div);
 
-		div=document.createElement("div");
-		div.className="elapseTime";
-		div.append(elapseTimeSpan);	
-		upperDiv.append(div);
+		//Max/Min button		
+		maxMinBtn.innerHTML="&#x26f6;";
+		maxMinBtn.className="btnlink maxMin";
+		maxMinBtn.title="Max/Min video";
+		$(maxMinBtn).click((event)=>{
+			doMaxMin(event);
+		});
+		
+		//Mirror button
+		mirrorBtn.innerHTML="&#x21c4;";
+		mirrorBtn.className="btnlink";
+		mirrorBtn.title="Mirror Video";
+		$(mirrorBtn).click((event)=>{
+			doMirror(event);
+		});
 		
 		//P in P button
 		svgString ="<svg xmlns=\"http://www.w3.org/2000/svg\"";
 		svgString+="width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" style=\"fill: white;\">";
 		svgString+="<path d=\"M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 1.98 2 1.98h18c1.1 0 2-.88 2-1.98V5c0-1.1-.9-2-2-2zm0 16.01H3V4.98h18v14.03z\"/>";
 		svgString+="</svg>";
-		
-		pInPBtn=document.createElement("div");
 		pInPBtn.innerHTML=svgString;
 		pInPBtn.className="btnlink";
+		pInPBtn.title="P In P";		
 		$(pInPBtn).click((event)=>{
-			doPInP();
+			doPInP(event);
 		});
-		pInPBtn.title="P In P";
-		btnDiv.append(pInPBtn);
 		
-		//Mirror button
-		div=document.createElement("div");
-		div.innerHTML="&#x21c4;";
-		div.className="btnlink";
-		$(div).click((event)=>{
-			doMirror();	
+		//Mute button
+		muteBtn.innerHTML="&#x1f507;";
+		muteBtn.className="btnlink";
+		muteBtn.title="Mute";
+		$(muteBtn).click((event)=>{
+			doMute(event);
 		});
-		div.title="Mirror Video";
-		btnDiv.append(div);
 		
-		//Max/Min button
-		maxMinBtn=document.createElement("div");
-		maxMinBtn.innerHTML="&#x26f6;";
-		maxMinBtn.className="btnlink maxMin";
-		maxMinBtn.title="Max/Min video";
-		$(maxMinBtn).click((event)=>{
-			doMaxMin();
+		playerOverlay.onclick=((event)=>{
+			if (!$(event.target).hasClass("btnlink")){
+				$(controlBar).collapse("toggle");
+			}
 		});
-		btnDiv.append(maxMinBtn);
 		
-		btnDiv.className="align-items-center d-flex flex-row justify-content-between p-0";
-		upperDiv.className="align-items-center d-flex flex-row justify-content-between p-0";
+		
+		videoTag.className="card-body p-0";
+		videoTag.autoplay=true; 
+		videoTag.muted=true;
+		videoTag.ontimeupdate=(()=>{
+			elapseTimeSpan.textContent=videoTag.currentTime.toString().toHHMMSS();
+		});
 
-		cardFooter.className="bg-secondary card-footer collapse controlPanel show p-1";
-		cardFooter.append(upperDiv);
-		cardFooter.append(btnDiv);		
-
-//==========================================================================================================						
+		lowerControlBar.className="align-items-center d-flex flex-row justify-content-between p-0";
+		upperControlBar.className="align-items-center d-flex flex-row justify-content-between p-0";
+		controlBar.className="bg-secondary collapse controlBar p-1 show rounded text-white";
+		playerOverlayCenter.className="center text-white";
+		playerOverlay.className="playerOverlay p-1";
+		container.className="card h-100";
+		
+		lowerControlBar.append(pInPBtn);
+		lowerControlBar.append(mirrorBtn);
+		lowerControlBar.append(maxMinBtn);
+		
+		upperControlBar.append(muteBtn);
+		upperControlBar.append(elapseTimeSpan);
+		
+		controlBar.append(upperControlBar);
+		controlBar.append(lowerControlBar);
+		
+		playerOverlay.append(playerOverlayCenter);
+		playerOverlay.append(controlBar);
+		
+		container.append(videoTag);
+		container.append(playerOverlay);
+//=================================================================		
 		this.addTrack=((track)=>{
 			if (videoTag.srcObject==null){
 				videoTag.srcObject=new MediaStream();
@@ -101,9 +98,6 @@ class MediaPlayer {
 		});
 		this.getDOMObj=(()=>{
 			return container;
-		});
-		this.getVideoTag=(()=>{
-			return getVideoTag();
 		});
 		this.maxMin=(()=>{
 			$(container).addClass("full_screen");
@@ -127,6 +121,7 @@ class MediaPlayer {
 					await track.stop();
 				});
 				videoTag.srcObject=null;
+				doShowControlBar();
 			}
 		});
 		this.setCurrentTime=((currentTime)=>{
@@ -136,15 +131,15 @@ class MediaPlayer {
 			logger=wl;
 		});
 		this.setMaxMinHandler=((handler)=>{
-			$(maxMinBtn).unbind("click");
+			$(maxMinBtn).off("click");
 			$(maxMinBtn).click((event)=>{
-				handler();
+				handler(event);
 			});
 		});
 		this.setPInPHandler=((handler)=>{
 			$(pInPBtn).unbind("click");
 			$(pInPBtn).click((event)=>{
-				handler();
+				handler(event);
 			});
 		});
 		this.setSource=((src)=>{
@@ -156,6 +151,7 @@ class MediaPlayer {
 			videoTag.srcObject=null;
 			videoTag.srcObject=stream;
 		});
+		
 //==========================================================================================================				
 		function clearCloneList(cloneList){
 			var mp;
@@ -174,50 +170,59 @@ class MediaPlayer {
 			$("body").append(mp.getDOMObj());
 			return mp;
 		}
-		function doMaxMin(){
+		function doMaxMin(event){
+			event.stopPropagation();
 			if (pInPCloneList.length>0){
 				clearCloneList(pInPCloneList);
-				$(cardFooter).collapse("toggle");
 				$(container).show();
+				doShowControlBar();
 			}
 			if (maxMinCloneList.length>0){
 				clearCloneList(maxMinCloneList);
-				$(cardFooter).collapse("toggle");
-				$(container).show();
+				doShowControlBar();
 			} else {	
 				var clone=cloneObj();
-				clone.maxMin();				
-				$(container).hide();
-				$(cardFooter).collapse("show");
+				clone.maxMin();
+				$(controlBar).collapse("hide");				
 				maxMinCloneList.push(clone);
 			}
 		}
-		function doMirror(){
+		function doMirror(event){
+			event.stopPropagation();
 			$(videoTag).toggleClass("mirror");
 		}
-		function doPInP(){
+		function doMute(event){
+			event.stopPropagation();
+			if (muted) {
+				videoTag.muted=false; 
+				$(muteBtn).html("&#x1f50a;");				
+			} else {
+				videoTag.muted=true;
+				$(muteBtn).html("&#x1f507;");				
+			}
+			muted=!muted;
+		}
+		function doPInP(event){
+			event.stopPropagation();	
 			if (maxMinCloneList.length>0){
 				clearCloneList(maxMinCloneList);
-				$(cardFooter).collapse("show");
-				$(container).show();
 			}
 			if (pInPCloneList.length>0){
 				clearCloneList(pInPCloneList);
-				$(cardFooter).collapse("show");
+				hideControlBar=false;
+
 				$(container).show();
-				
+				doShowControlBar();
 			} else {
 				var clone=cloneObj();
-				clone.pInP();				
-				$(container).hide();
+				clone.pInP();
+				$(container).hide();		
 				pInPCloneList.push(clone);
 			}
 		}
-		function getVideoTag(){
-			return videoTag;
+		function doShowControlBar(){
+			$(controlBar).collapse("show");
 		}
-		
-		
 		String.prototype.toHHMMSS = function () {
 			var sec_num = parseInt(this, 10); // don't forget the second param
 			var hours   = Math.floor(sec_num / 3600);
@@ -230,4 +235,4 @@ class MediaPlayer {
 			return hours+':'+minutes+':'+seconds;
 		}
 	}
-}
+}	

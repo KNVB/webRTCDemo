@@ -10,8 +10,18 @@
 			.btnlink:hover{
 				cursor:pointer;
 			}
-			.controlPanel{
+			.center {
+			  margin: 0;
+			  position: absolute;
+			  top: 50%;
+			  left: 50%;
+			  -ms-transform: translate(-50%, -50%);
+			  transform: translate(-50%, -50%);
+			}
+			.controlBar{
 				font-size:20px;
+				margin-top: auto;
+				display: block;
 			}
 			.full_screen {
 				width: 100vw;
@@ -23,6 +33,18 @@
 			}
 			.mirror{
 				transform: scale(-1, 1);
+			}
+			.playerOverlay {
+			  position: absolute;
+			  display: flex;
+			  flex-direction: column;
+			  top: 0;
+			  left: 0;
+			  right: 0;
+			  bottom: 0;
+			  background-color: rgba(0,0,0,0);
+			  z-index: 2;
+			  cursor: pointer;
 			}
 			.pinp{
 				height:30vh;
@@ -160,7 +182,7 @@
 					style="height:25vh">
 				</div>
 				<div class="border-left border-bottom border-primary 
-							col-6 p-1"
+							border-right col-6 p-1"
 					id="remoteVideoCell"		
 					style="height:25vh">
 				</div>

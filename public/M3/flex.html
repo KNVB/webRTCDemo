@@ -7,8 +7,18 @@
 			#gg{
 				display:none;
 			}
-			.controlPanel{
-				font-size:24px;
+			.center {
+			  margin: 0;
+			  position: absolute;
+			  top: 50%;
+			  left: 50%;
+			  -ms-transform: translate(-50%, -50%);
+			  transform: translate(-50%, -50%);
+			}
+			.controlBar{
+				font-size:20px;
+				margin-top: auto;
+				display: block;
 			}
 			.full_screen {
 				width: 100vw;
@@ -26,6 +36,18 @@
 				right: 5;
 				z-index: 100;
 			}
+			.playerOverlay {
+			  position: absolute;
+			  display: flex;
+			  flex-direction: column;
+			  top: 0;
+			  left: 0;
+			  right: 0;
+			  bottom: 0;
+			  background-color: rgba(0,0,0,0);
+			  z-index: 2;
+			  cursor: pointer;
+			}			
 			video {
 				transform: scale(-1, 1);
 				object-fit: cover;
@@ -49,6 +71,9 @@
 				webrtc.setChannelEventHandler(handleChannelEvent);
 				webrtc.setTrackEventHandlder(handleRemoteTrack);
 				webrtc.setSocket(socket);
+				$(".card").click((event)=>{
+					$(".controlBar").collapse("toggle");
+				});
 				/*
 				$("#player").mouseover((event)=>{
 					writeLog("Mouse over");
@@ -179,38 +204,28 @@
 				<div class="border-left border-bottom border-primary 
 							col-6 p-1"
 					style="height:25vh">
-					<div class="card h-100 text-white" id="media_wrapper1">
+					<div class="card h-100">
 						<video id="selfView" autoplay muted class="card-body p-0">
 							<source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
 						</video>
-						<div class="bg-secondary card-footer p-0">
-							<div class="d-flex flex-column pl-1 pr-1">
-								<div class="align-items-center controlPanel d-flex flex-row justify-content-between">
-									<div>	
-										<a href="javascript:void(0)" 
-										   onclick="muteMedia('media_wrapper1',this)"
-										   style="color:inherit;text-decoration:none">
-											&#x1f507;
-										</a>
-
-									</div>	
-									<div>	
+						<div class="playerOverlay p-1">
+							<div class="center text-white">
+							</div>
+							<div class="bg-primary collapse controlBar p-1 rounded show text-white">
+								<div class="align-items-center d-flex flex-row justify-content-between p-0">
+									<div>&#x1f507;</div>
+									<div><span>00:00:00</span></div>
+								</div>
+								<div class="align-items-center d-flex flex-row justify-content-between p-0">
+									<div>
 										<svg xmlns="http://www.w3.org/2000/svg" 
 											width="24" height="24" viewBox="0 0 24 24" style="fill: white;"
-											onclick="pinp('media_wrapper1')">
+											onclick="pinp('media_wrapper2')">
 											<path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 1.98 2 1.98h18c1.1 0 2-.88 2-1.98V5c0-1.1-.9-2-2-2zm0 16.01H3V4.98h18v14.03z"/>
 										</svg>
-									</div>	
-									<div>
-										<a href="javascript:void(0)" 
-										   onclick="maxMinWin('media_wrapper1',this)"
-										   style="color:inherit;text-decoration:none">
-											&#x26f6;
-										</a>
 									</div>
-								</div>
-								<div>
-									<span class="elapseTime">12:00:34</span>
+									<div>&#x21c4;</div>
+									<div>&#x26f6;</div>
 								</div>
 							</div>
 						</div>
