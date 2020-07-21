@@ -66,7 +66,7 @@ class MediaPlayer {
 		});
 		
 		
-		videoTag.className="card-body p-0";
+		videoTag.className="card-body p-0 rounded w-100";
 		videoTag.autoplay=true; 
 		videoTag.muted=true;
 		videoTag.ontimeupdate=(()=>{
