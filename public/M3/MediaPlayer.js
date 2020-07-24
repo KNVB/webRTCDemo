@@ -214,8 +214,8 @@ class MediaPlayer {
 			mp.setMaxMinHandler(doMaxMin);
 			mp.setMirrorHandler(toggleMirror);
 			mp.setMirrorState($(videoTag).hasClass("mirror"));
-			mp.setMuteState(muted);
 			mp.setMuteHandler(toggleMute);
+			mp.setMuteState(muted);			
 			mp.setPInPHandler(doPInP);
 			mp.setStream(videoTag.srcObject);			
 			mp.showControlBar();
