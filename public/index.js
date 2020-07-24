@@ -21,13 +21,15 @@ var io = require('socket.io')(server);
 var userList=[];
 
 app.use(express.static('public'));
-io.on('connection', function(socket) {
-  console.log('new connection@'+getTimeString());
-  userList.push(socket.id);	
-  socket.emit('message', 'This is a message from the dark side.');
-});
 io.on('connection', (socket) => {
-	console.log('a user connected@'+getTimeString());
+	console.log('a user('+socket.id+') connected@'+getTimeString());
+	if (userList.length<2){
+		userList.push(socket.id);
+	} else {
+		socket.emit('rejectConnection','');
+		console.log('User list='+JSON.stringify(userList));
+		socket.disconnect(true);
+	}
 	socket.on("closeConnection",()=>{
 		console.log("Close connection request received@"+getTimeString());
 		socket.broadcast.emit("closeConnection", {});
@@ -50,7 +52,10 @@ io.on('connection', (socket) => {
 		socket.broadcast.emit("requestRollDice",rollDiceResult);
 	});
 	socket.on('disconnect', () => {
-		console.log('user disconnected@'+getTimeString());
+		console.log('user ('+socket.id+') disconnected@'+getTimeString());
+		console.log('Before '+JSON.stringify(userList));
+		userList= userList.filter(function(value, index, arr){ return value !== socket.id;});
+		console.log('After '+JSON.stringify(userList));
 	});
 });
 

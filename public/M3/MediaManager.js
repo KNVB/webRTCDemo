@@ -70,7 +70,7 @@ class MediaManager{
 						stream = await navigator.mediaDevices.getDisplayMedia(config);
 						if (shareAudio){
 							if (stream.getAudioTracks().length<1) {
-								config["audio"]=sampleConstraint["audio"];
+								config["audio"]=shareAudio;
 								var audioStream = await navigator.mediaDevices.getUserMedia(config);
 								if (audioStream) {
 									audioStream.getAudioTracks().forEach((track)=>{

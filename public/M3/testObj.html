@@ -165,7 +165,16 @@
 //============================================================================================
 			socket.on("closeConnection",()=>{
 				hangUp(false);
-			});					
+			});
+			socket.on("rejectConnection",()=>{
+				 
+				$('.modal').modal('show');
+			});
+			/*
+			socket.on('disconnect', ()=> {
+				console.log("Disconnected from server");
+			});
+			*/
 		</script>
 	</head>
 	<body class="p-1">
@@ -248,6 +257,20 @@
 				<div class="border-bottom border-left border-primary border-right  
 							col-12 d-flex flex-column h-100 overflow-auto position-absolute p-0" 
 					id="logger">
+				</div>
+			</div>
+		</div>
+		<div class="modal" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Chat Room Message</h5>
+					</div>
+					<div class="modal-body">
+						<p>
+							This chat room supports 2 users only, please try again later.
+						</p>
+					</div>
 				</div>
 			</div>
 		</div>

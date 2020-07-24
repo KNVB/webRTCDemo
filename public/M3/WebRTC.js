@@ -72,7 +72,6 @@ class WebRTC{
 			if (dataChannel)
 				dataChannel.close();
 			if (pc){
-				pc.close();
 				pc.onconnectionstatechange = null;
 				pc.ondatachannel = null;
 				pc.onicecandidate=null;
@@ -81,6 +80,7 @@ class WebRTC{
 				pc.onnegotiationneeded=null;
 				pc.onsignalingstatechange=null;
 				pc.ontrack=null;
+				pc.close();
 				pc=null;
 			}
 			polite=false;
