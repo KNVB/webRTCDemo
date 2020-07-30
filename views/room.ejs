@@ -1,0 +1,114 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<title>WebRTC Device List</title>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+		<style>
+			#video-grid {
+			  display: grid;
+			  grid-template-columns: repeat(auto-fill, 100px);
+			  grid-auto-rows: 100px;
+			}
+
+			video {
+			  width: 100%;
+			  height: 100%;
+			  object-fit: cover;
+			}
+		</style>		
+		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+		<script defer src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="M3/MediaManager.js"></script>
+		<script>
+			var localStream;
+			var myPeer,myVideo,videoGrid ;
+			var mediaManager=new MediaManager();
+			var peers = {};
+			var ROOM_ID = "<%= roomId %>";
+			var socket = io.connect();
+			
+			$( document ).ready(async function() {
+				videoGrid = document.getElementById('video-grid');
+				
+				myVideo = document.createElement('video');
+				myVideo.autoplay=true;
+				myVideo.muted=true;
+				mediaManager.setLogger(writeLog);	
+				localStream=await mediaManager.getLocalStream("frontCam",true);
+				addVideoStream(myVideo, localStream);
+				
+				myPeer = new Peer();
+				myPeer.on('call', call => {
+					writeLog("0 call event");
+					call.answer(localStream);
+					let video = document.createElement('video');
+					video.autoplay=true;
+			        video.muted=true;
+					call.on('stream', userVideoStream => {
+					  writeLog("0 stream event:"+(userVideoStream==null));	
+					  addVideoStream(video, userVideoStream);
+					})
+				})
+
+				myPeer.on('open', id => {
+					writeLog("open event");
+					socket.emit('join-room', ROOM_ID, id)
+				});
+			});
+			
+			
+			socket.on('user-connected', userId => {
+				writeLog("user connect event");
+				connectToNewUser(userId, localStream);
+			})
+			socket.on('user-disconnected', userId => {
+				if (peers[userId]){
+					peers[userId].close();
+					writeLog("user disconnect event");
+				}
+			})
+			function addVideoStream(video, stream) {
+				video.srcObject = stream;
+				videoGrid.append(video);
+			}
+			function connectToNewUser(userId, stream) {
+			  const call = myPeer.call(userId, stream)
+			  let video = document.createElement('video');
+			  video.autoplay=true;
+			  video.muted=true;
+
+			  call.on('stream', userVideoStream => {
+				writeLog("1 stream event:"+(userVideoStream==null));
+				addVideoStream(video, userVideoStream);
+			  })
+			  call.on('close', () => {
+				writeLog("call close event");
+				video.remove()
+			  })
+
+			  peers[userId] = call
+			}			
+			function writeLog(message) {
+				var logger=document.getElementById("logger");
+				var date=new Date();
+				$(logger).prepend("<div>"+date.getHours()+":"+date.getMinutes() +":"+date.getSeconds()+"."+date.getMilliseconds()+"<br>"+message+"<hr></div>");
+			}
+		</script>
+	</head>
+	<body>
+		<div id="video-grid"></div>
+		<hr>
+		<div class="border-top border-primary container-fluid d-flex flex-column">
+			<div class="position-relative row" style="height:20vh">
+				<div class="border-bottom border-left border-primary border-right  
+							col-12 d-flex flex-column h-100 overflow-auto position-absolute p-0" 
+					id="logger">
+				</div>
+			</div>
+		</div>	
+	</body>
+</html>	
