@@ -30,6 +30,9 @@ io.on('connection', (socket) => {
 		socket.disconnect(true);
 	}
 	console.log('User list='+JSON.stringify(userList)+'@'+getTimeString());
+	socket.on("abc",()=>{
+		console.log("ABC event");
+	});
 	socket.on("closeConnection",()=>{
 		console.log("Close connection request received@"+getTimeString());
 		socket.broadcast.emit("closeConnection", {});
